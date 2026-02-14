@@ -12,7 +12,7 @@ router.get('/', async (req, res) => {
 
     let query = supabase
       .from('tarefas')
-      .select('*, clientes!inner(nome)', { count: 'exact' });
+      .select('*, clientes(nome)', { count: 'exact' });
 
     if (cliente_id) query = query.eq('cliente_id', cliente_id);
     if (status) query = query.eq('status', status);
