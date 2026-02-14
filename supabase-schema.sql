@@ -39,7 +39,7 @@ CREATE TABLE IF NOT EXISTS dividas (
   valor_atualizado NUMERIC(12,2),
   tipo TEXT,
   bureau TEXT,
-  data_negativacao DATE,
+  data_vencimento DATE,
   contrato TEXT,
   observacoes TEXT,
   status TEXT DEFAULT 'ativa',
@@ -57,10 +57,10 @@ CREATE TABLE IF NOT EXISTS processos (
   plataforma TEXT,
   vara TEXT,
   comarca TEXT,
-  status TEXT DEFAULT 'preparando',
+  status TEXT DEFAULT 'em_andamento',
   bureaus_alvo JSONB DEFAULT '[]',
-  data_protocolo DATE,
-  data_deferimento DATE,
+  data_ajuizamento DATE,
+  data_liminar DATE,
   data_cumprimento DATE,
   data_validade DATE,
   valor_honorarios NUMERIC(12,2),
@@ -77,7 +77,8 @@ CREATE TABLE IF NOT EXISTS apontamentos_bacen (
   tipo TEXT,
   instituicao TEXT,
   valor NUMERIC(12,2),
-  data_apontamento DATE,
+  data_ocorrencia DATE,
+  data_consulta TIMESTAMPTZ DEFAULT NOW(),
   status TEXT DEFAULT 'ativo',
   processo_id INTEGER REFERENCES processos(id) ON DELETE SET NULL,
   observacoes TEXT,
@@ -90,8 +91,8 @@ CREATE TABLE IF NOT EXISTS historico (
   cliente_id INTEGER NOT NULL REFERENCES clientes(id) ON DELETE CASCADE,
   tipo TEXT NOT NULL,
   descricao TEXT NOT NULL,
-  autor TEXT,
-  dados_extras JSONB,
+  usuario TEXT,
+  dados_extra JSONB,
   data_registro TIMESTAMPTZ DEFAULT NOW()
 );
 
@@ -124,11 +125,14 @@ CREATE TABLE IF NOT EXISTS tarefas (
 -- =============================================
 CREATE INDEX IF NOT EXISTS idx_clientes_cpf ON clientes(cpf);
 CREATE INDEX IF NOT EXISTS idx_clientes_status ON clientes(status);
+CREATE INDEX IF NOT EXISTS idx_clientes_telefone ON clientes(telefone);
 CREATE INDEX IF NOT EXISTS idx_clientes_origem ON clientes(origem);
 CREATE INDEX IF NOT EXISTS idx_dividas_cliente ON dividas(cliente_id);
 CREATE INDEX IF NOT EXISTS idx_processos_cliente ON processos(cliente_id);
 CREATE INDEX IF NOT EXISTS idx_processos_status ON processos(status);
+CREATE INDEX IF NOT EXISTS idx_bacen_cliente ON apontamentos_bacen(cliente_id);
 CREATE INDEX IF NOT EXISTS idx_historico_cliente ON historico(cliente_id);
+CREATE INDEX IF NOT EXISTS idx_tarefas_cliente ON tarefas(cliente_id);
 CREATE INDEX IF NOT EXISTS idx_tarefas_status ON tarefas(status);
 CREATE INDEX IF NOT EXISTS idx_tarefas_vencimento ON tarefas(data_vencimento);
 
@@ -212,7 +216,7 @@ BEGIN
 
     'ultimas_atividades',
       COALESCE((SELECT json_agg(row_to_json(sub))
-        FROM (SELECT h.id, h.cliente_id, h.tipo, h.descricao, h.autor, h.data_registro, c.nome AS cliente_nome
+        FROM (SELECT h.id, h.cliente_id, h.tipo, h.descricao, h.usuario, h.data_registro, c.nome AS cliente_nome
           FROM historico h JOIN clientes c ON h.cliente_id = c.id
           ORDER BY h.data_registro DESC LIMIT 15) sub), '[]'::json),
 
