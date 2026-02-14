@@ -112,7 +112,7 @@ const ClienteDetalhePage = {
               ${this.infoField('Estado Civil', c.estado_civil)}
               ${this.infoField('Profissão', c.profissao)}
               ${this.infoField('Renda Mensal', c.renda_mensal ? Utils.formatMoney(c.renda_mensal) : '-')}
-              ${this.infoField('Serviço Contratado', c.servico_contratado)}
+              ${this.infoField('Serviços Contratados', c.servico_contratado)}
             </div>
           </div>
         </div>

@@ -149,13 +149,13 @@ const App = {
         </div>
         <div class="form-group"><label>Profissão</label><input id="mcProf" value="${Utils.escapeHtml(cliente?.profissao || '')}"></div>
         <div class="form-group"><label>Renda Mensal (R$)</label><input id="mcRenda" type="number" step="0.01" value="${cliente?.renda_mensal || ''}"></div>
-        <div class="form-group"><label>Serviço Contratado</label>
-          <select id="mcServico">
-            <option value="">Selecione</option>
-            ${['Diagnóstico Financeiro', 'Limpa Nome (SCPC, Serasa, etc)', 'Score', 'Rating', 'BACEN'].map(s =>
-              `<option value="${s}" ${cliente?.servico_contratado === s ? 'selected' : ''}>${s}</option>`
-            ).join('')}
-          </select>
+        <div class="form-group full-width"><label>Serviços Contratados</label>
+          <div class="checkbox-group" id="mcServicos">
+            ${['Diagnóstico Financeiro', 'Limpa Nome (SCPC, Serasa, etc)', 'Score', 'Rating', 'BACEN'].map(s => {
+              const checked = (cliente?.servico_contratado || '').split(', ').includes(s) ? 'checked' : '';
+              return `<label class="checkbox-label"><input type="checkbox" value="${s}" ${checked}> ${s}</label>`;
+            }).join('')}
+          </div>
         </div>
         <div class="form-group"><label>Score Inicial</label><input id="mcScore" type="number" min="0" max="1000" value="${cliente?.score_inicial || ''}"></div>
         <div class="form-group"><label>Origem</label>
@@ -227,7 +227,7 @@ const App = {
       estado_civil: document.getElementById('mcEstCivil').value,
       profissao: document.getElementById('mcProf').value.trim(),
       renda_mensal: parseFloat(document.getElementById('mcRenda').value) || null,
-      servico_contratado: document.getElementById('mcServico').value,
+      servico_contratado: [...document.querySelectorAll('#mcServicos input:checked')].map(c => c.value).join(', '),
       score_inicial: parseInt(document.getElementById('mcScore').value) || null,
       origem: document.getElementById('mcOrigem').value,
       endereco: document.getElementById('mcEnd').value.trim(),

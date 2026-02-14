@@ -49,8 +49,9 @@ router.post('/forms', async (req, res) => {
       return res.json({ message: 'Cliente já cadastrado', cliente_id: existente.id, duplicado: true });
     }
 
-    // Capturar serviço contratado
-    const servico = dados.servico_contratado || dados['Serviço Contratado'] || dados['servico'] || '';
+    // Capturar serviço(s) contratado(s) - pode vir como array (checkbox) ou string
+    let servico = dados.servico_contratado || dados['Serviço Contratado'] || dados['servico'] || '';
+    if (Array.isArray(servico)) servico = servico.filter(Boolean).join(', ');
 
     // Criar novo cliente
     const { data: cliente, error } = await supabase
