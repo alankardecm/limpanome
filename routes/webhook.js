@@ -49,6 +49,9 @@ router.post('/forms', async (req, res) => {
       return res.json({ message: 'Cliente já cadastrado', cliente_id: existente.id, duplicado: true });
     }
 
+    // Capturar serviço contratado
+    const servico = dados.servico_contratado || dados['Serviço Contratado'] || dados['servico'] || '';
+
     // Criar novo cliente
     const { data: cliente, error } = await supabase
       .from('clientes')
@@ -60,6 +63,7 @@ router.post('/forms', async (req, res) => {
         cidade: dados.cidade || dados['Cidade'] || null,
         estado: dados.estado || dados['Estado'] || null,
         renda_mensal: dados.renda_mensal ? parseFloat(dados.renda_mensal) : null,
+        servico_contratado: servico || null,
         observacoes: dados.observacoes || dados['Observações'] || null,
         origem: 'google_forms',
         status: 'lead'

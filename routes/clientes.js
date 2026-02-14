@@ -84,8 +84,8 @@ router.post('/', async (req, res) => {
     const {
       nome, cpf, rg, email, telefone, telefone2,
       data_nascimento, endereco, cidade, estado, cep,
-      profissao, renda_mensal, estado_civil, origem,
-      status, score_inicial, observacoes
+      profissao, renda_mensal, estado_civil, servico_contratado,
+      origem, status, score_inicial, observacoes
     } = req.body;
 
     if (!nome || !cpf || !telefone) {
@@ -110,7 +110,8 @@ router.post('/', async (req, res) => {
         data_nascimento: data_nascimento || null,
         endereco, cidade, estado, cep,
         profissao, renda_mensal: renda_mensal || null,
-        estado_civil, origem: origem || 'manual',
+        estado_civil, servico_contratado: servico_contratado || null,
+        origem: origem || 'manual',
         status: status || 'lead',
         score_inicial: score_inicial || null,
         score_atual: score_inicial || null,

@@ -21,6 +21,7 @@ CREATE TABLE IF NOT EXISTS clientes (
   profissao TEXT,
   renda_mensal NUMERIC(12,2),
   estado_civil TEXT,
+  servico_contratado TEXT,
   origem TEXT DEFAULT 'manual',
   status TEXT DEFAULT 'lead',
   score_inicial INTEGER,
