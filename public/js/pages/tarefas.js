@@ -45,9 +45,10 @@ const TarefasPage = {
       if (status) params.status = status;
       if (prio) params.prioridade = prio;
 
-      const tarefas = await API.tarefas.listar(params);
+      const result = await API.tarefas.listar(params);
+      const tarefas = result.data || result;
 
-      if (tarefas.length === 0) {
+      if (!tarefas || tarefas.length === 0) {
         container.innerHTML = Components.emptyState('fa-tasks', 'Nenhuma tarefa', 'Crie uma nova tarefa');
         return;
       }

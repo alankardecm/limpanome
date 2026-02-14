@@ -13,12 +13,19 @@
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
     "express": "^4.21.0",
+    "jsonwebtoken": "^9.0.3",
     "multer": "^1.4.5-lts.1"
   },
   "engines": {
     "node": ">=18.0.0"
   },
-  "keywords": ["crm", "limpa-nome", "liminar", "supabase", "vercel"],
+  "keywords": [
+    "crm",
+    "limpa-nome",
+    "liminar",
+    "supabase",
+    "vercel"
+  ],
   "author": "",
   "license": "ISC"
 }

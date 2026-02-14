@@ -6,10 +6,19 @@ const API = {
 
   async request(endpoint, options = {}) {
     const url = `${this.BASE}${endpoint}`;
+    const token = localStorage.getItem('crm_token');
     const config = {
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+      },
       ...options,
     };
+
+    // Preservar headers customizados do options
+    if (options.headers) {
+      config.headers = { ...config.headers, ...options.headers };
+    }
 
     if (config.body && typeof config.body === 'object') {
       config.body = JSON.stringify(config.body);
@@ -17,6 +26,15 @@ const API = {
 
     try {
       const response = await fetch(url, config);
+
+      // Se não autorizado, redirecionar para login
+      if (response.status === 401 || response.status === 403) {
+        localStorage.removeItem('crm_token');
+        localStorage.removeItem('crm_user');
+        window.location.reload();
+        return;
+      }
+
       const data = await response.json();
 
       if (!response.ok) {

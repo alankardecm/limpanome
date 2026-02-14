@@ -234,3 +234,11 @@ BEGIN
   RETURN result;
 END;
 $$;
+
+-- =============================================
+-- PERMISSÕES (necessário para acesso via anon key)
+-- =============================================
+GRANT USAGE ON SCHEMA public TO anon, authenticated;
+GRANT ALL ON ALL TABLES IN SCHEMA public TO anon, authenticated;
+GRANT ALL ON ALL SEQUENCES IN SCHEMA public TO anon, authenticated;
+GRANT EXECUTE ON FUNCTION get_dashboard_stats() TO anon, authenticated;

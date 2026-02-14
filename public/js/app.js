@@ -268,7 +268,8 @@ const App = {
   // === Tarefas Badge ===
   async updateTarefasBadge() {
     try {
-      const tarefas = await API.tarefas.listar({ status: 'pendente' });
+      const result = await API.tarefas.listar({ status: 'pendente' });
+      const tarefas = result.data || result;
       const badge = document.getElementById('tarefasBadge');
       if (tarefas.length > 0) {
         badge.textContent = tarefas.length;
@@ -282,5 +283,4 @@ const App = {
   },
 };
 
-// Inicializa quando DOM estiver pronto
-document.addEventListener('DOMContentLoaded', () => App.init());
+// App.init() é chamado por Auth.showApp() após autenticação bem-sucedida
