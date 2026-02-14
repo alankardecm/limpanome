@@ -1352,3 +1352,137 @@ table tbody tr:last-child td {
 .checkbox-label input[type="checkbox"] {
   accent-color: var(--primary);
 }
+
+/* =============================================
+   DOCUMENTOS
+   ============================================= */
+
+.doc-upload-area {
+  background: var(--bg);
+  border: 2px dashed var(--border);
+  border-radius: 10px;
+  padding: 1.25rem;
+  margin-bottom: 1rem;
+}
+
+.doc-upload-row {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-start;
+  flex-wrap: wrap;
+}
+
+.doc-upload-row .form-group {
+  min-width: 200px;
+}
+
+.doc-tipo-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.doc-tipo-consulta_antes { background: #fef3c7; color: #92400e; }
+.doc-tipo-consulta_depois { background: #d1fae5; color: #065f46; }
+.doc-tipo-contrato { background: #dbeafe; color: #1e40af; }
+.doc-tipo-procuracao { background: #e0e7ff; color: #3730a3; }
+.doc-tipo-comprovante { background: #f3e8ff; color: #6b21a8; }
+.doc-tipo-outro, .doc-tipo-geral { background: #f1f5f9; color: #475569; }
+
+.btn-xs {
+  padding: 0.2rem 0.45rem;
+  font-size: 0.75rem;
+  border-radius: 4px;
+}
+
+/* Comparação lado a lado */
+.doc-compare-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.7);
+  z-index: 1100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.doc-compare-container {
+  background: var(--bg-card);
+  border-radius: 12px;
+  width: 95vw;
+  max-width: 1400px;
+  height: 90vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.doc-compare-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.doc-compare-header h3 { margin: 0; }
+
+.doc-compare-body {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1px;
+  background: var(--border);
+  flex: 1;
+  overflow: hidden;
+}
+
+.doc-compare-col {
+  background: var(--bg-card);
+  overflow-y: auto;
+  padding: 1rem;
+}
+
+.doc-compare-col h4 {
+  text-align: center;
+  margin: 0 0 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid var(--primary);
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.doc-compare-item {
+  margin-bottom: 1rem;
+}
+
+.doc-compare-item p {
+  margin: 0 0 0.5rem;
+  font-size: 0.85rem;
+}
+
+.doc-pdf-frame {
+  width: 100%;
+  height: 600px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+}
+
+.doc-img-preview {
+  max-width: 100%;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+}
+
+@media (max-width: 768px) {
+  .doc-compare-body {
+    grid-template-columns: 1fr;
+  }
+  .doc-upload-row {
+    flex-direction: column;
+  }
+}

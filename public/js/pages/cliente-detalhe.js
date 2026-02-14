@@ -75,6 +75,9 @@ const ClienteDetalhePage = {
         <button class="detail-tab" data-tab="tarefas" onclick="ClienteDetalhePage.setActiveTab('tarefas')">
           <i class="fas fa-tasks"></i> Tarefas (${c.tarefas?.length || 0})
         </button>
+        <button class="detail-tab" data-tab="documentos" onclick="ClienteDetalhePage.setActiveTab('documentos')">
+          <i class="fas fa-file-pdf"></i> Documentos
+        </button>
       </div>
 
       <!-- Tab Contents -->
@@ -85,6 +88,7 @@ const ClienteDetalhePage = {
       <div id="tabScore" class="tab-content">${this.buildTabScore()}</div>
       <div id="tabHistorico" class="tab-content">${this.buildTabHistorico()}</div>
       <div id="tabTarefas" class="tab-content">${this.buildTabTarefas()}</div>
+      <div id="tabDocumentos" class="tab-content">${this.buildTabDocumentos()}</div>
     `;
   },
 
@@ -95,6 +99,9 @@ const ClienteDetalhePage = {
     document.querySelector(`[data-tab="${tab}"]`)?.classList.add('active');
     const tabEl = document.getElementById(`tab${tab.charAt(0).toUpperCase() + tab.slice(1)}`);
     if (tabEl) tabEl.classList.add('active');
+
+    // Carregar documentos ao abrir a aba
+    if (tab === 'documentos') this.loadDocumentos();
   },
 
   buildTabGeral() {
@@ -940,5 +947,205 @@ const ClienteDetalhePage = {
     } catch (err) {
       App.toast(err.message, 'error');
     }
+  },
+
+  // =============================================
+  // TAB: DOCUMENTOS
+  // =============================================
+
+  buildTabDocumentos() {
+    return `
+      <div class="card">
+        <div class="card-header" style="display:flex; justify-content:space-between; align-items:center;">
+          <h3><i class="fas fa-file-pdf"></i> Documentos do Cliente</h3>
+        </div>
+        <div class="card-body">
+          <!-- Upload -->
+          <div class="doc-upload-area">
+            <div class="doc-upload-row">
+              <div class="form-group" style="flex:1">
+                <label>Tipo do Documento</label>
+                <select id="docTipo">
+                  <option value="consulta_antes">Consulta ANTES (situação inicial)</option>
+                  <option value="consulta_depois">Consulta DEPOIS (resultado)</option>
+                  <option value="contrato">Contrato</option>
+                  <option value="procuracao">Procuração</option>
+                  <option value="comprovante">Comprovante</option>
+                  <option value="outro">Outro</option>
+                </select>
+              </div>
+              <div class="form-group" style="flex:1">
+                <label>Descrição (opcional)</label>
+                <input id="docDescricao" placeholder="Ex: Consulta Serasa Jan/2026">
+              </div>
+            </div>
+            <div class="doc-upload-row">
+              <div class="form-group" style="flex:1">
+                <label>Arquivo (PDF, PNG ou JPG - máx 10MB)</label>
+                <input type="file" id="docArquivo" accept=".pdf,.png,.jpg,.jpeg">
+              </div>
+              <button class="btn btn-primary" onclick="ClienteDetalhePage.uploadDocumento()" style="align-self:flex-end; margin-bottom: 1rem;">
+                <i class="fas fa-cloud-upload-alt"></i> Enviar
+              </button>
+            </div>
+          </div>
+
+          <!-- Botão comparar -->
+          <div style="margin: 1rem 0; text-align: right;">
+            <button class="btn btn-outline btn-sm" onclick="ClienteDetalhePage.compararDocumentos()">
+              <i class="fas fa-columns"></i> Comparar Antes x Depois
+            </button>
+          </div>
+
+          <!-- Lista de documentos -->
+          <div id="docLista"><p style="color:var(--text-light); text-align:center; padding:2rem;">Carregando documentos...</p></div>
+        </div>
+      </div>
+
+      <!-- Modal comparação (hidden) -->
+      <div id="docCompareModal" class="doc-compare-overlay" style="display:none">
+        <div class="doc-compare-container">
+          <div class="doc-compare-header">
+            <h3><i class="fas fa-columns"></i> Comparar Documentos</h3>
+            <button class="modal-close" onclick="document.getElementById('docCompareModal').style.display='none'">&times;</button>
+          </div>
+          <div class="doc-compare-body">
+            <div class="doc-compare-col">
+              <h4>ANTES (Situação Inicial)</h4>
+              <div id="docCompareAntes"><p style="color:var(--text-light)">Nenhum documento "Antes" encontrado</p></div>
+            </div>
+            <div class="doc-compare-col">
+              <h4>DEPOIS (Resultado)</h4>
+              <div id="docCompareDepois"><p style="color:var(--text-light)">Nenhum documento "Depois" encontrado</p></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+  },
+
+  async loadDocumentos() {
+    try {
+      const docs = await API.documentos.listar(this.clienteId);
+      this.documentos = docs;
+      const container = document.getElementById('docLista');
+      if (!container) return;
+
+      if (!docs || docs.length === 0) {
+        container.innerHTML = '<p style="color:var(--text-light); text-align:center; padding:2rem;">Nenhum documento enviado ainda.</p>';
+        return;
+      }
+
+      const tipoLabels = {
+        consulta_antes: '📋 Consulta ANTES',
+        consulta_depois: '✅ Consulta DEPOIS',
+        contrato: '📄 Contrato',
+        procuracao: '📝 Procuração',
+        comprovante: '🧾 Comprovante',
+        outro: '📎 Outro',
+        geral: '📎 Geral'
+      };
+
+      container.innerHTML = `
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Tipo</th>
+              <th>Descrição</th>
+              <th>Arquivo</th>
+              <th>Data</th>
+              <th>Ações</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${docs.map(d => `
+              <tr>
+                <td><span class="doc-tipo-badge doc-tipo-${d.tipo}">${tipoLabels[d.tipo] || d.tipo}</span></td>
+                <td>${Utils.escapeHtml(d.descricao || '-')}</td>
+                <td>${Utils.escapeHtml(d.nome_arquivo)} <small>(${(d.tamanho / 1024).toFixed(0)} KB)</small></td>
+                <td>${Utils.formatDate(d.data_upload)}</td>
+                <td>
+                  <a href="${d.url}" target="_blank" class="btn btn-outline btn-xs" title="Visualizar">
+                    <i class="fas fa-eye"></i>
+                  </a>
+                  <a href="${d.url}" download class="btn btn-outline btn-xs" title="Baixar">
+                    <i class="fas fa-download"></i>
+                  </a>
+                  <button class="btn btn-danger btn-xs" onclick="ClienteDetalhePage.excluirDocumento(${d.id})" title="Excluir">
+                    <i class="fas fa-trash"></i>
+                  </button>
+                </td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      `;
+    } catch (err) {
+      const container = document.getElementById('docLista');
+      if (container) container.innerHTML = `<p style="color:var(--status-cancelado)">Erro ao carregar documentos: ${err.message}</p>`;
+    }
+  },
+
+  async uploadDocumento() {
+    const arquivo = document.getElementById('docArquivo')?.files[0];
+    const tipo = document.getElementById('docTipo')?.value;
+    const descricao = document.getElementById('docDescricao')?.value;
+
+    if (!arquivo) {
+      App.toast('Selecione um arquivo', 'error');
+      return;
+    }
+
+    try {
+      App.toast('Enviando documento...', 'info');
+      await API.documentos.upload(this.clienteId, arquivo, tipo, descricao);
+      App.toast('Documento enviado com sucesso!', 'success');
+
+      // Limpar form
+      document.getElementById('docArquivo').value = '';
+      document.getElementById('docDescricao').value = '';
+
+      // Recarregar lista
+      this.loadDocumentos();
+    } catch (err) {
+      App.toast('Erro no upload: ' + err.message, 'error');
+    }
+  },
+
+  async excluirDocumento(id) {
+    if (!confirm('Excluir este documento?')) return;
+    try {
+      await API.documentos.excluir(id);
+      App.toast('Documento excluído', 'success');
+      this.loadDocumentos();
+    } catch (err) {
+      App.toast(err.message, 'error');
+    }
+  },
+
+  compararDocumentos() {
+    const docs = this.documentos || [];
+    const antes = docs.filter(d => d.tipo === 'consulta_antes');
+    const depois = docs.filter(d => d.tipo === 'consulta_depois');
+
+    const renderDocs = (lista) => {
+      if (lista.length === 0) return '<p style="color:var(--text-light); padding:1rem;">Nenhum documento encontrado</p>';
+      return lista.map(d => {
+        if (d.mimetype === 'application/pdf') {
+          return `<div class="doc-compare-item">
+            <p><strong>${Utils.escapeHtml(d.descricao || d.nome_arquivo)}</strong> <small>${Utils.formatDate(d.data_upload)}</small></p>
+            <iframe src="${d.url}" class="doc-pdf-frame"></iframe>
+          </div>`;
+        }
+        return `<div class="doc-compare-item">
+          <p><strong>${Utils.escapeHtml(d.descricao || d.nome_arquivo)}</strong> <small>${Utils.formatDate(d.data_upload)}</small></p>
+          <img src="${d.url}" class="doc-img-preview" alt="${d.nome_arquivo}">
+        </div>`;
+      }).join('');
+    };
+
+    document.getElementById('docCompareAntes').innerHTML = renderDocs(antes);
+    document.getElementById('docCompareDepois').innerHTML = renderDocs(depois);
+    document.getElementById('docCompareModal').style.display = 'flex';
   },
 };

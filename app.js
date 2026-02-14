@@ -31,6 +31,7 @@ app.use('/api/bacen', require('./routes/bacen'));
 app.use('/api/historico', require('./routes/historico'));
 app.use('/api/tarefas', require('./routes/tarefas'));
 app.use('/api/dashboard', require('./routes/dashboard'));
+app.use('/api/documentos', require('./routes/documentos'));
 
 // Error handler global
 app.use((err, req, res, next) => {

@@ -156,4 +156,38 @@ const API = {
       return API.request('/dashboard');
     },
   },
+
+  // === Documentos ===
+  documentos: {
+    listar(clienteId) {
+      return API.request(`/documentos?cliente_id=${clienteId}`);
+    },
+    async upload(clienteId, arquivo, tipo, descricao) {
+      const formData = new FormData();
+      formData.append('arquivo', arquivo);
+      formData.append('cliente_id', clienteId);
+      formData.append('tipo', tipo || 'geral');
+      if (descricao) formData.append('descricao', descricao);
+
+      const token = localStorage.getItem('crm_token');
+      const res = await fetch(`${API.BASE}/documentos/upload`, {
+        method: 'POST',
+        headers: token ? { 'Authorization': `Bearer ${token}` } : {},
+        body: formData
+      });
+
+      if (res.status === 401 || res.status === 403) {
+        localStorage.removeItem('crm_token');
+        window.location.reload();
+        return;
+      }
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Erro no upload');
+      return data;
+    },
+    excluir(id) {
+      return API.request(`/documentos/${id}`, { method: 'DELETE' });
+    },
+  },
 };

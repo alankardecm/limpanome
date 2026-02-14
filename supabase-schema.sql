@@ -121,6 +121,20 @@ CREATE TABLE IF NOT EXISTS tarefas (
   data_conclusao TIMESTAMPTZ
 );
 
+-- Tabela de documentos/PDFs
+CREATE TABLE IF NOT EXISTS documentos (
+  id SERIAL PRIMARY KEY,
+  cliente_id INTEGER REFERENCES clientes(id) ON DELETE CASCADE,
+  tipo TEXT DEFAULT 'geral',
+  descricao TEXT,
+  nome_arquivo TEXT NOT NULL,
+  caminho_storage TEXT NOT NULL,
+  url TEXT,
+  tamanho INTEGER,
+  mimetype TEXT,
+  data_upload TIMESTAMPTZ DEFAULT NOW()
+);
+
 -- =============================================
 -- ÍNDICES
 -- =============================================
