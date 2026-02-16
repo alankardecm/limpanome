@@ -285,3 +285,19 @@ GRANT USAGE ON SCHEMA public TO anon, authenticated;
 GRANT ALL ON ALL TABLES IN SCHEMA public TO anon, authenticated;
 GRANT ALL ON ALL SEQUENCES IN SCHEMA public TO anon, authenticated;
 GRANT EXECUTE ON FUNCTION get_dashboard_stats() TO anon, authenticated;
+
+-- =============================================
+-- DESABILITAR RLS (Row Level Security)
+-- O CRM usa autenticação própria via JWT no backend,
+-- então o RLS do Supabase não é necessário e pode
+-- bloquear operações (ex: upload de documentos).
+-- =============================================
+ALTER TABLE clientes DISABLE ROW LEVEL SECURITY;
+ALTER TABLE dividas DISABLE ROW LEVEL SECURITY;
+ALTER TABLE processos DISABLE ROW LEVEL SECURITY;
+ALTER TABLE apontamentos_bacen DISABLE ROW LEVEL SECURITY;
+ALTER TABLE historico DISABLE ROW LEVEL SECURITY;
+ALTER TABLE score_historico DISABLE ROW LEVEL SECURITY;
+ALTER TABLE tarefas DISABLE ROW LEVEL SECURITY;
+ALTER TABLE documentos DISABLE ROW LEVEL SECURITY;
+ALTER TABLE tabela_precos DISABLE ROW LEVEL SECURITY;
