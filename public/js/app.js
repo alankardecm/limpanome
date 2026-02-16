@@ -84,6 +84,7 @@ const App = {
       processos: 'Processos',
       tarefas: 'Tarefas',
       pipeline: 'Pipeline',
+      precos: 'Tabela de Preços',
     };
     document.getElementById('pageTitle').textContent = titles[page] || page;
 
@@ -94,6 +95,7 @@ const App = {
       case 'processos': ProcessosPage.render(); break;
       case 'tarefas': TarefasPage.render(); break;
       case 'pipeline': PipelinePage.render(); break;
+      case 'precos': PrecosPage.render(); break;
       default: DashboardPage.render();
     }
   },
@@ -142,9 +144,9 @@ const App = {
         <div class="form-group"><label>Estado Civil</label>
           <select id="mcEstCivil">
             <option value="">Selecione</option>
-            ${['Solteiro(a)', 'Casado(a)', 'Divorciado(a)', 'Viúvo(a)', 'União Estável'].map(ec => 
-              `<option value="${ec}" ${cliente?.estado_civil === ec ? 'selected' : ''}>${ec}</option>`
-            ).join('')}
+            ${['Solteiro(a)', 'Casado(a)', 'Divorciado(a)', 'Viúvo(a)', 'União Estável'].map(ec =>
+      `<option value="${ec}" ${cliente?.estado_civil === ec ? 'selected' : ''}>${ec}</option>`
+    ).join('')}
           </select>
         </div>
         <div class="form-group"><label>Profissão</label><input id="mcProf" value="${Utils.escapeHtml(cliente?.profissao || '')}"></div>
@@ -152,9 +154,9 @@ const App = {
         <div class="form-group full-width"><label>Serviços Contratados</label>
           <div class="checkbox-group" id="mcServicos">
             ${['Diagnóstico Financeiro', 'Limpa Nome (SCPC, Serasa, etc)', 'Score', 'Rating', 'BACEN'].map(s => {
-              const checked = (cliente?.servico_contratado || '').split(', ').includes(s) ? 'checked' : '';
-              return `<label class="checkbox-label"><input type="checkbox" value="${s}" ${checked}> ${s}</label>`;
-            }).join('')}
+      const checked = (cliente?.servico_contratado || '').split(', ').includes(s) ? 'checked' : '';
+      return `<label class="checkbox-label"><input type="checkbox" value="${s}" ${checked}> ${s}</label>`;
+    }).join('')}
           </div>
         </div>
         <div class="form-group"><label>Score Inicial</label><input id="mcScore" type="number" min="0" max="1000" value="${cliente?.score_inicial || ''}"></div>
@@ -174,9 +176,9 @@ const App = {
           <div class="form-group"><label>Estado</label>
             <select id="mcEstado">
               <option value="">UF</option>
-              ${['AC','AL','AP','AM','BA','CE','DF','ES','GO','MA','MT','MS','MG','PA','PB','PR','PE','PI','RJ','RN','RS','RO','RR','SC','SP','SE','TO'].map(uf =>
-                `<option value="${uf}" ${cliente?.estado === uf ? 'selected' : ''}>${uf}</option>`
-              ).join('')}
+              ${['AC', 'AL', 'AP', 'AM', 'BA', 'CE', 'DF', 'ES', 'GO', 'MA', 'MT', 'MS', 'MG', 'PA', 'PB', 'PR', 'PE', 'PI', 'RJ', 'RN', 'RS', 'RO', 'RR', 'SC', 'SP', 'SE', 'TO'].map(uf =>
+      `<option value="${uf}" ${cliente?.estado === uf ? 'selected' : ''}>${uf}</option>`
+    ).join('')}
             </select>
           </div>
           <div class="form-group"><label>CEP</label><input id="mcCEP" value="${Utils.escapeHtml(cliente?.cep || '')}" maxlength="9"></div>

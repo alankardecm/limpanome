@@ -251,6 +251,34 @@ END;
 $$;
 
 -- =============================================
+-- Tabela de preços dos serviços
+-- =============================================
+CREATE TABLE IF NOT EXISTS tabela_precos (
+  id SERIAL PRIMARY KEY,
+  servico TEXT NOT NULL UNIQUE,
+  preco_tabela NUMERIC(12,2),
+  preco_meekah NUMERIC(12,2),
+  preco_geral NUMERIC(12,2),
+  ativo BOOLEAN DEFAULT TRUE,
+  ordem INTEGER DEFAULT 0,
+  data_atualizacao TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Seed: dados iniciais da tabela de preços
+INSERT INTO tabela_precos (servico, preco_tabela, preco_meekah, preco_geral, ordem) VALUES
+  ('Limpa Nome',             270.00,  600.00,  600.00,  1),
+  ('Rating',                 600.00,  990.00,  1200.00, 2),
+  ('Score',                  345.00,  NULL,    700.00,  3),
+  ('Bacen',                  2400.00, 3400.00, 3600.00, 4),
+  ('Remoção de Processos',   225.00,  NULL,    NULL,    5),
+  ('CNH',                    420.00,  NULL,    NULL,    6),
+  ('Multas',                 420.00,  NULL,    NULL,    7),
+  ('Reclame Aqui',           500.00,  NULL,    NULL,    8),
+  ('Limpa Nome + Score',     NULL,    NULL,    1300.00, 9),
+  ('Diagnóstico Financeiro', 13.00,   50.00,   50.00,   10)
+ON CONFLICT (servico) DO NOTHING;
+
+-- =============================================
 -- PERMISSÕES (necessário para acesso via anon key)
 -- =============================================
 GRANT USAGE ON SCHEMA public TO anon, authenticated;

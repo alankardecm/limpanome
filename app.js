@@ -32,6 +32,7 @@ app.use('/api/historico', require('./routes/historico'));
 app.use('/api/tarefas', require('./routes/tarefas'));
 app.use('/api/dashboard', require('./routes/dashboard'));
 app.use('/api/documentos', require('./routes/documentos'));
+app.use('/api/precos', require('./routes/precos'));
 
 // Error handler global
 app.use((err, req, res, next) => {

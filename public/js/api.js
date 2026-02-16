@@ -190,4 +190,20 @@ const API = {
       return API.request(`/documentos/${id}`, { method: 'DELETE' });
     },
   },
+
+  // === Preços ===
+  precos: {
+    listar() {
+      return API.request('/precos');
+    },
+    criar(data) {
+      return API.request('/precos', { method: 'POST', body: data });
+    },
+    atualizar(id, data) {
+      return API.request(`/precos/${id}`, { method: 'PUT', body: data });
+    },
+    excluir(id) {
+      return API.request(`/precos/${id}`, { method: 'DELETE' });
+    },
+  },
 };
