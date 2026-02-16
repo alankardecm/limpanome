@@ -61,6 +61,7 @@ router.post('/forms', async (req, res) => {
         cpf: cpf || null,
         telefone: telefone.replace(/\D/g, ''),
         email: email || null,
+        data_nascimento: dados.data_nascimento || null,
         cidade: dados.cidade || dados['Cidade'] || null,
         estado: dados.estado || dados['Estado'] || null,
         renda_mensal: dados.renda_mensal ? parseFloat(dados.renda_mensal) : null,
