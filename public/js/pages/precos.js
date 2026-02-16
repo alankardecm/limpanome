@@ -54,7 +54,7 @@ const PrecosPage = {
 
     const rows = this.precos.map((p, idx) => `
       <tr style="border-bottom:1px solid var(--border,#1e293b);">
-        <td style="padding:14px 16px; font-weight:600; color:#ffffff; white-space:nowrap;">
+        <td style="padding:14px 16px; font-weight:600; color:#000000; white-space:nowrap;">
           ${this.escapeHtml(p.servico)}
         </td>
         <td class="preco-cell" style="padding:14px 16px; text-align:right; cursor:pointer; transition:background .2s;"
