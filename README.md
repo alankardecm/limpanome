@@ -498,12 +498,13 @@ Acesse [forms.google.com](https://forms.google.com) e crie um formulário com **
 |---|----------|---------------|:-----------:|
 | 1 | **Nome Completo** | Resposta curta | ✅ |
 | 2 | **CPF** | Resposta curta | ✅ |
-| 3 | **Telefone** | Resposta curta | ✅ |
-| 4 | **Email** | Resposta curta | ⬜ |
-| 5 | **Cidade** | Resposta curta | ⬜ |
-| 6 | **Estado** | Lista suspensa | ⬜ |
-| 7 | **Serviço Contratado** | Caixas de seleção | ✅ |
-| 8 | **Observações** | Parágrafo | ⬜ |
+| 3 | **Data Nascimento** | Data | ✅ |
+| 4 | **Telefone** | Resposta curta | ✅ |
+| 5 | **Email** | Resposta curta | ⬜ |
+| 6 | **Cidade** | Resposta curta | ⬜ |
+| 7 | **Estado** | Lista suspensa | ⬜ |
+| 8 | **Serviço Contratado** | Caixas de seleção | ✅ |
+| 9 | **Observações** | Parágrafo | ⬜ |
 
 > ⚠️ **Os nomes das perguntas devem ser exatamente iguais** (maiúsculas, acentos) pois o script usa `e.namedValues['Nome Completo']` para mapear.
 
@@ -536,6 +537,7 @@ function onFormSubmit(e) {
   var payload = {
     nome:               (r['Nome Completo'] || [''])[0],
     cpf:                (r['CPF'] || [''])[0],
+    data_nascimento:    (r['Data Nascimento'] || [''])[0],
     telefone:           (r['Telefone'] || [''])[0],
     email:              (r['Email'] || [''])[0],
     cidade:             (r['Cidade'] || [''])[0],
