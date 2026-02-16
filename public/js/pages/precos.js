@@ -3,12 +3,12 @@
 // =============================================
 
 const PrecosPage = {
-    precos: [],
-    editingCell: null,
+  precos: [],
+  editingCell: null,
 
-    async render() {
-        const container = document.getElementById('pageContent');
-        container.innerHTML = `
+  async render() {
+    const container = document.getElementById('pageContent');
+    container.innerHTML = `
       <div class="page-header" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:24px;">
         <div>
           <h2 style="margin:0; font-size:1.1rem; color:var(--text-secondary,#94a3b8);">
@@ -27,34 +27,34 @@ const PrecosPage = {
         </div>
       </div>
     `;
-        await this.load();
-    },
+    await this.load();
+  },
 
-    async load() {
-        try {
-            this.precos = await API.precos.listar();
-            this.renderTable();
-        } catch (err) {
-            document.getElementById('precosTableContainer').innerHTML =
-                `<p style="text-align:center;padding:40px;color:#ef4444;">
+  async load() {
+    try {
+      this.precos = await API.precos.listar();
+      this.renderTable();
+    } catch (err) {
+      document.getElementById('precosTableContainer').innerHTML =
+        `<p style="text-align:center;padding:40px;color:#ef4444;">
           <i class="fas fa-exclamation-triangle"></i> Erro ao carregar preços: ${err.message}
         </p>`;
-        }
-    },
+    }
+  },
 
-    renderTable() {
-        const container = document.getElementById('precosTableContainer');
-        if (!this.precos || this.precos.length === 0) {
-            container.innerHTML = `
+  renderTable() {
+    const container = document.getElementById('precosTableContainer');
+    if (!this.precos || this.precos.length === 0) {
+      container.innerHTML = `
         <p style="text-align:center;padding:40px;color:var(--text-secondary,#94a3b8);">
           Nenhum serviço cadastrado.
         </p>`;
-            return;
-        }
+      return;
+    }
 
-        const rows = this.precos.map((p, idx) => `
+    const rows = this.precos.map((p, idx) => `
       <tr style="border-bottom:1px solid var(--border,#1e293b);">
-        <td style="padding:14px 16px; font-weight:600; color:var(--text-primary,#f1f5f9); white-space:nowrap;">
+        <td style="padding:14px 16px; font-weight:600; color:#ffffff; white-space:nowrap;">
           ${this.escapeHtml(p.servico)}
         </td>
         <td class="preco-cell" style="padding:14px 16px; text-align:right; cursor:pointer; transition:background .2s;"
@@ -87,7 +87,7 @@ const PrecosPage = {
       </tr>
     `).join('');
 
-        container.innerHTML = `
+    container.innerHTML = `
       <table style="width:100%; border-collapse:collapse; min-width:600px;">
         <thead>
           <tr style="border-bottom:2px solid var(--border,#1e293b);">
@@ -116,37 +116,37 @@ const PrecosPage = {
         <i class="fas fa-info-circle"></i> Clique em qualquer valor para editar diretamente.
       </p>
     `;
-    },
+  },
 
-    formatPreco(valor) {
-        if (valor === null || valor === undefined || valor === '') {
-            return '<span style="color:var(--text-secondary,#475569);">—</span>';
-        }
-        const num = parseFloat(valor);
-        if (isNaN(num)) return '—';
-        return 'R$ ' + num.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-    },
+  formatPreco(valor) {
+    if (valor === null || valor === undefined || valor === '') {
+      return '<span style="color:var(--text-secondary,#475569);">—</span>';
+    }
+    const num = parseFloat(valor);
+    if (isNaN(num)) return '—';
+    return 'R$ ' + num.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  },
 
-    escapeHtml(text) {
-        if (!text) return '';
-        const div = document.createElement('div');
-        div.textContent = text;
-        return div.innerHTML;
-    },
+  escapeHtml(text) {
+    if (!text) return '';
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+  },
 
-    startEdit(id, campo, cell) {
-        // Se já está editando, cancelar
-        if (this.editingCell) return;
-        this.editingCell = cell;
+  startEdit(id, campo, cell) {
+    // Se já está editando, cancelar
+    if (this.editingCell) return;
+    this.editingCell = cell;
 
-        const preco = this.precos.find(p => p.id === id);
-        const valorAtual = preco ? preco[campo] : '';
-        const valorNum = valorAtual !== null && valorAtual !== undefined ? parseFloat(valorAtual) : '';
+    const preco = this.precos.find(p => p.id === id);
+    const valorAtual = preco ? preco[campo] : '';
+    const valorNum = valorAtual !== null && valorAtual !== undefined ? parseFloat(valorAtual) : '';
 
-        const originalHTML = cell.innerHTML;
-        const originalColor = cell.style.color;
+    const originalHTML = cell.innerHTML;
+    const originalColor = cell.style.color;
 
-        cell.innerHTML = `
+    cell.innerHTML = `
       <input type="number" step="0.01" min="0" value="${valorNum || ''}"
         style="width:120px; padding:6px 10px; border:2px solid #6366f1; border-radius:6px;
                background:var(--bg-secondary,#1e293b); color:#f1f5f9; font-size:0.95rem;
@@ -155,60 +155,60 @@ const PrecosPage = {
         onkeydown="if(event.key==='Enter') PrecosPage.saveEdit(${id},'${campo}'); if(event.key==='Escape') PrecosPage.cancelEdit();"
       />
     `;
-        cell.style.cursor = 'default';
-        cell.onclick = null;
+    cell.style.cursor = 'default';
+    cell.onclick = null;
 
-        const input = document.getElementById('precosEditInput');
-        input.focus();
-        input.select();
+    const input = document.getElementById('precosEditInput');
+    input.focus();
+    input.select();
 
-        // Salvar referências para cancelar
-        this._editRestore = { cell, originalHTML, originalColor, id, campo };
+    // Salvar referências para cancelar
+    this._editRestore = { cell, originalHTML, originalColor, id, campo };
 
-        // Salvar ao clicar fora
-        const onBlur = () => {
-            input.removeEventListener('blur', onBlur);
-            // Pequeno delay para permitir Enter ser processado primeiro
-            setTimeout(() => {
-                if (this.editingCell === cell) {
-                    this.saveEdit(id, campo);
-                }
-            }, 150);
-        };
-        input.addEventListener('blur', onBlur);
-    },
-
-    async saveEdit(id, campo) {
-        const input = document.getElementById('precosEditInput');
-        if (!input) { this.editingCell = null; return; }
-
-        const valor = input.value.trim();
-        const valorNum = valor === '' ? null : parseFloat(valor);
-
-        this.editingCell = null;
-
-        try {
-            await API.precos.atualizar(id, { [campo]: valorNum });
-            App.toast('Preço atualizado!', 'success');
-            await this.load();
-        } catch (err) {
-            App.toast('Erro ao salvar: ' + err.message, 'error');
-            await this.load();
+    // Salvar ao clicar fora
+    const onBlur = () => {
+      input.removeEventListener('blur', onBlur);
+      // Pequeno delay para permitir Enter ser processado primeiro
+      setTimeout(() => {
+        if (this.editingCell === cell) {
+          this.saveEdit(id, campo);
         }
-    },
+      }, 150);
+    };
+    input.addEventListener('blur', onBlur);
+  },
 
-    cancelEdit() {
-        if (!this._editRestore) return;
-        const { cell, originalHTML, originalColor } = this._editRestore;
-        cell.innerHTML = originalHTML;
-        cell.style.color = originalColor;
-        cell.style.cursor = 'pointer';
-        this.editingCell = null;
-        this._editRestore = null;
-    },
+  async saveEdit(id, campo) {
+    const input = document.getElementById('precosEditInput');
+    if (!input) { this.editingCell = null; return; }
 
-    openNovoModal() {
-        const html = `
+    const valor = input.value.trim();
+    const valorNum = valor === '' ? null : parseFloat(valor);
+
+    this.editingCell = null;
+
+    try {
+      await API.precos.atualizar(id, { [campo]: valorNum });
+      App.toast('Preço atualizado!', 'success');
+      await this.load();
+    } catch (err) {
+      App.toast('Erro ao salvar: ' + err.message, 'error');
+      await this.load();
+    }
+  },
+
+  cancelEdit() {
+    if (!this._editRestore) return;
+    const { cell, originalHTML, originalColor } = this._editRestore;
+    cell.innerHTML = originalHTML;
+    cell.style.color = originalColor;
+    cell.style.cursor = 'pointer';
+    this.editingCell = null;
+    this._editRestore = null;
+  },
+
+  openNovoModal() {
+    const html = `
       <form id="formNovoServico" onsubmit="PrecosPage.salvarNovo(event)">
         <div class="form-group">
           <label>Nome do Serviço *</label>
@@ -243,44 +243,44 @@ const PrecosPage = {
         </div>
       </form>
     `;
-        App.openModal('Novo Serviço', html);
-    },
+    App.openModal('Novo Serviço', html);
+  },
 
-    async salvarNovo(e) {
-        e.preventDefault();
-        const servico = document.getElementById('novoServico').value.trim();
-        const preco_tabela = document.getElementById('novoPrecoTabela').value || null;
-        const preco_meekah = document.getElementById('novoPrecoMeekah').value || null;
-        const preco_geral = document.getElementById('novoPrecoGeral').value || null;
+  async salvarNovo(e) {
+    e.preventDefault();
+    const servico = document.getElementById('novoServico').value.trim();
+    const preco_tabela = document.getElementById('novoPrecoTabela').value || null;
+    const preco_meekah = document.getElementById('novoPrecoMeekah').value || null;
+    const preco_geral = document.getElementById('novoPrecoGeral').value || null;
 
-        if (!servico) {
-            App.toast('Nome do serviço é obrigatório', 'error');
-            return;
-        }
-
-        try {
-            await API.precos.criar({
-                servico,
-                preco_tabela: preco_tabela ? parseFloat(preco_tabela) : null,
-                preco_meekah: preco_meekah ? parseFloat(preco_meekah) : null,
-                preco_geral: preco_geral ? parseFloat(preco_geral) : null,
-            });
-            App.closeModal();
-            App.toast('Serviço adicionado!', 'success');
-            await this.load();
-        } catch (err) {
-            App.toast('Erro ao salvar: ' + err.message, 'error');
-        }
-    },
-
-    async excluir(id, nome) {
-        if (!confirm(`Excluir o serviço "${nome}"?`)) return;
-        try {
-            await API.precos.excluir(id);
-            App.toast('Serviço excluído!', 'success');
-            await this.load();
-        } catch (err) {
-            App.toast('Erro ao excluir: ' + err.message, 'error');
-        }
+    if (!servico) {
+      App.toast('Nome do serviço é obrigatório', 'error');
+      return;
     }
+
+    try {
+      await API.precos.criar({
+        servico,
+        preco_tabela: preco_tabela ? parseFloat(preco_tabela) : null,
+        preco_meekah: preco_meekah ? parseFloat(preco_meekah) : null,
+        preco_geral: preco_geral ? parseFloat(preco_geral) : null,
+      });
+      App.closeModal();
+      App.toast('Serviço adicionado!', 'success');
+      await this.load();
+    } catch (err) {
+      App.toast('Erro ao salvar: ' + err.message, 'error');
+    }
+  },
+
+  async excluir(id, nome) {
+    if (!confirm(`Excluir o serviço "${nome}"?`)) return;
+    try {
+      await API.precos.excluir(id);
+      App.toast('Serviço excluído!', 'success');
+      await this.load();
+    } catch (err) {
+      App.toast('Erro ao excluir: ' + err.message, 'error');
+    }
+  }
 };
