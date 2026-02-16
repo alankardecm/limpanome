@@ -301,3 +301,21 @@ ALTER TABLE score_historico DISABLE ROW LEVEL SECURITY;
 ALTER TABLE tarefas DISABLE ROW LEVEL SECURITY;
 ALTER TABLE documentos DISABLE ROW LEVEL SECURITY;
 ALTER TABLE tabela_precos DISABLE ROW LEVEL SECURITY;
+
+-- =============================================
+-- POLICIES DE STORAGE (bucket "documentos")
+-- Necessário para uploads/downloads de arquivos.
+-- Não é possível desabilitar RLS em storage.objects,
+-- então criamos policies permissivas.
+-- =============================================
+CREATE POLICY "Allow all uploads" ON storage.objects
+  FOR INSERT TO anon, authenticated
+  WITH CHECK (bucket_id = 'documentos');
+
+CREATE POLICY "Allow all reads" ON storage.objects
+  FOR SELECT TO anon, authenticated
+  USING (bucket_id = 'documentos');
+
+CREATE POLICY "Allow all deletes" ON storage.objects
+  FOR DELETE TO anon, authenticated
+  USING (bucket_id = 'documentos');
