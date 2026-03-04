@@ -5,3 +5,5 @@ data/
 .env.local
 .vercel
 .env*.local
+
+video/

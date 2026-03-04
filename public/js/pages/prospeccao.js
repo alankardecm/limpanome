@@ -276,14 +276,18 @@ const ProspeccaoPage = {
 
       // Buscar detalhes (telefone/website) para cada resultado
       container.innerHTML = `
-        <div style="display:flex;justify-content:space-between;align-items:center;margin:1rem 0;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin:1rem 0;flex-wrap:wrap;gap:.5rem">
           <span><strong>${data.total}</strong> resultados encontrados</span>
-          <div style="display:flex;gap:0.5rem;">
+          <div style="display:flex;gap:0.5rem;flex-wrap:wrap;">
             <button class="btn btn-outline btn-sm" onclick="ProspeccaoPage.selecionarTodos()"><i class="fas fa-check-double"></i> Selecionar Todos</button>
             <button class="btn btn-primary btn-sm" onclick="ProspeccaoPage.salvarSelecionados()"><i class="fas fa-save"></i> Salvar como Leads</button>
+            <button class="btn btn-sm" style="background:linear-gradient(135deg,#25D366,#128C7E);color:#fff;" onclick="ProspeccaoPage.dispararWppSelecionados()">
+              <i class="fab fa-whatsapp"></i> Disparar WPP
+            </button>
             <button class="btn btn-outline btn-sm" onclick="ProspeccaoPage.exportarCSV()"><i class="fas fa-download"></i> CSV</button>
           </div>
         </div>
+
         <div class="table-container">
           <table>
             <thead>
@@ -403,5 +407,125 @@ const ProspeccaoPage = {
     a.click();
     URL.revokeObjectURL(url);
     App.toast('CSV exportado!', 'success');
+  },
+
+  // === DISPARAR WPP DA PROSPECÇÃO ===
+  dispararWppSelecionados() {
+    const selecionados = [];
+    document.querySelectorAll('.maps-check:checked').forEach(c => {
+      const r = this.resultadosMaps[parseInt(c.dataset.index)];
+      if (r && r.telefone) selecionados.push({ nome: r.nome, telefone: r.telefone });
+    });
+
+    if (!selecionados.length) {
+      return App.toast('Selecione leads com telefone buscado. Use o botão 📞 Buscar primeiro!', 'warning');
+    }
+
+    const n = selecionados.length;
+    App.openModal('📱 Disparar WPP — Prospecção', `
+      <div style="display:flex;flex-direction:column;gap:1rem">
+        <div style="background:#d1fae5;border-radius:8px;padding:.75rem 1rem;font-size:.9rem">
+          <i class="fab fa-whatsapp" style="color:#25D366"></i>
+          <strong>${n} lead${n !== 1 ? 's' : ''}</strong> selecionado${n !== 1 ? 's' : ''} com telefone
+        </div>
+
+        <div class="form-group">
+          <label>Mensagem <span style="font-weight:400;color:#888;font-size:.8rem">— use <code style="background:#f1f5f9;padding:1px 4px;border-radius:3px">{{nome}}</code> para personalizar</span></label>
+          <textarea id="wppMapsMsg" rows="6" style="width:100%;padding:8px 12px;border:1px solid #e2e8f0;border-radius:8px;resize:vertical;font:inherit"
+            placeholder="Olá {{nome}}, tudo bem?&#10;&#10;Sou da Limpa Nome e tenho uma proposta especial..."
+            oninput="document.getElementById('wppMapsPrevia').innerHTML=this.value.replace(/{{nome}}/gi,'<strong>${selecionados[0]?.nome?.split(' ')[0] || 'cliente'}</strong>').replace(/\n/g,'<br>')">
+          </textarea>
+        </div>
+
+        <div style="background:#e5ddd5;border-radius:8px;padding:.75rem">
+          <div style="font-size:.72rem;font-weight:600;color:#555;margin-bottom:.4rem;"><i class="fas fa-eye"></i> Prévia</div>
+          <div id="wppMapsPrevia" style="background:#fff;border-radius:0 10px 10px 10px;padding:.6rem .9rem;font-size:.88rem;line-height:1.5;box-shadow:0 1px 2px rgba(0,0,0,.1)">
+            <em style="color:#aaa">Escreva a mensagem acima...</em>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Delay entre envios</label>
+          <select id="wppMapsDelay" style="padding:8px 12px;border:1px solid #e2e8f0;border-radius:8px;font:inherit">
+            <option value="3000">3 segundos (recomendado)</option>
+            <option value="5000">5 segundos (conservador)</option>
+            <option value="2000">2 segundos (rápido)</option>
+          </select>
+        </div>
+
+        <div id="wppMapsProgresso" style="display:none">
+          <div style="height:8px;background:#f1f5f9;border-radius:8px;overflow:hidden;margin-bottom:.5rem">
+            <div id="wppMapsBar" style="height:100%;background:linear-gradient(90deg,#25D366,#128C7E);width:0%;transition:width .5s;border-radius:8px"></div>
+          </div>
+          <div style="display:flex;gap:.75rem;font-size:.85rem">
+            <span id="wppMapsEnv" style="color:#065f46;font-weight:600"><i class="fas fa-check"></i> 0 enviados</span>
+            <span id="wppMapsErr" style="color:#991b1b;font-weight:600"><i class="fas fa-xmark"></i> 0 erros</span>
+            <span id="wppMapsStatus" style="color:#555">Aguardando...</span>
+          </div>
+        </div>
+
+        <div style="display:flex;gap:.75rem;justify-content:flex-end;padding-top:.5rem;border-top:1px solid #f1f5f9">
+          <button class="btn btn-outline" onclick="App.closeModal()">Cancelar</button>
+          <button id="btnDispararMaps" class="btn" style="background:linear-gradient(135deg,#25D366,#128C7E);color:#fff"
+            onclick="ProspeccaoPage._confirmarDisparo(${JSON.stringify(selecionados).replace(/"/g, '&quot;')})">
+            <i class="fab fa-whatsapp"></i> Disparar para ${n} leads
+          </button>
+        </div>
+      </div>
+    `);
+  },
+
+  async _confirmarDisparo(selecionados) {
+    const mensagem = document.getElementById('wppMapsMsg')?.value?.trim();
+    const delay_ms = parseInt(document.getElementById('wppMapsDelay')?.value || '3000');
+    if (!mensagem) return App.toast('Escreva a mensagem antes de disparar', 'warning');
+
+    const btn = document.getElementById('btnDispararMaps');
+    if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Disparando...'; }
+
+    const progresso = document.getElementById('wppMapsProgresso');
+    if (progresso) progresso.style.display = 'block';
+
+    try {
+      const result = await API.request('/whatsapp/disparar-numeros', {
+        method: 'POST',
+        body: { mensagem, contatos: selecionados, delay_ms, titulo_campanha: `Prospecção Maps — ${new Date().toLocaleDateString('pt-BR')}` }
+      });
+
+      const campanhaId = result.campanha_id;
+      const total = result.total;
+
+      // Polling de progresso
+      const poll = setInterval(async () => {
+        try {
+          const prog = await API.request(`/whatsapp/progresso/${campanhaId}`);
+          const { enviados = 0, erros = 0, finalizado } = prog;
+          const pct = total > 0 ? Math.round(((enviados + erros) / total) * 100) : 0;
+
+          const bar = document.getElementById('wppMapsBar');
+          const envEl = document.getElementById('wppMapsEnv');
+          const errEl = document.getElementById('wppMapsErr');
+          const statusEl = document.getElementById('wppMapsStatus');
+
+          if (bar) bar.style.width = pct + '%';
+          if (envEl) envEl.innerHTML = `<i class="fas fa-check"></i> ${enviados} enviados`;
+          if (errEl) errEl.innerHTML = `<i class="fas fa-xmark"></i> ${erros} erros`;
+
+          if (finalizado) {
+            clearInterval(poll);
+            if (statusEl) statusEl.innerHTML = '✅ Concluído!';
+            App.toast(`Disparo concluído! ${enviados}/${total} mensagens enviadas.`, 'success');
+            if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fas fa-check"></i> Concluído'; }
+          } else {
+            if (statusEl) statusEl.textContent = `${pct}% concluído...`;
+          }
+        } catch (e) { /* silencioso */ }
+      }, 3000);
+
+    } catch (err) {
+      App.toast('Erro: ' + err.message, 'error');
+      if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fab fa-whatsapp"></i> Tentar novamente'; }
+    }
   }
 };
+

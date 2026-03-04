@@ -62,6 +62,71 @@ router.post('/enviar-um', async (req, res) => {
     }
 });
 
+// POST /api/whatsapp/disparar-numeros — Dispara para lista de {nome, telefone} sem precisar salvar no CRM
+router.post('/disparar-numeros', async (req, res) => {
+    try {
+        const { mensagem, contatos, delay_ms = 3000, titulo_campanha } = req.body;
+
+        if (!mensagem) return res.status(400).json({ error: 'mensagem é obrigatória' });
+        if (!contatos?.length) return res.status(400).json({ error: 'Lista de contatos vazia' });
+
+        // Filtrar apenas quem tem telefone
+        const validos = contatos.filter(c => c.telefone && c.telefone.replace(/\D/g, '').length >= 8);
+        if (!validos.length) return res.status(400).json({ error: 'Nenhum contato com telefone válido' });
+
+        const { token, phoneId } = getMetaConfig();
+        const campanha_id = `wpp_maps_${Date.now()}`;
+        const titulo = titulo_campanha || `Disparo Prospecção ${new Date().toLocaleDateString('pt-BR')}`;
+
+        res.json({ status: 'iniciado', campanha_id, total: validos.length, titulo });
+
+        // Processar em background com delay
+        (async () => {
+            let enviados = 0, erros = 0;
+            const resultados = [];
+
+            for (const contato of validos) {
+                try {
+                    const msgPersonalizada = mensagem
+                        .replace(/\{\{nome\}\}/gi, contato.nome?.split(' ')[0] || 'cliente')
+                        .replace(/\{\{telefone\}\}/gi, contato.telefone || '');
+
+                    await enviarMensagemMeta(contato.telefone, msgPersonalizada, token, phoneId);
+                    enviados++;
+                    resultados.push({ nome: contato.nome, telefone: contato.telefone, status: 'enviado' });
+
+                    // Registrar progresso
+                    await supabase.from('historico').insert({
+                        tipo: 'whatsapp_campanha',
+                        descricao: JSON.stringify({ campanha_id, titulo, enviados, erros, total: validos.length, status: 'em_andamento', resultados }),
+                        usuario: 'disparo_prospeccao'
+                    }).then(() => { });
+
+                } catch (err) {
+                    erros++;
+                    resultados.push({ nome: contato.nome, telefone: contato.telefone, status: 'erro', erro: err.message });
+                }
+
+                if (delay_ms > 0) await new Promise(r => setTimeout(r, delay_ms));
+            }
+
+            // Finalizar campanha
+            await supabase.from('historico').insert({
+                tipo: 'whatsapp_campanha_fim',
+                descricao: JSON.stringify({ campanha_id, titulo, enviados, erros, total: validos.length, status: 'concluida', resultados }),
+                usuario: 'disparo_prospeccao'
+            });
+
+            console.log(`✅ Campanha prospecção ${campanha_id}: ${enviados}/${validos.length} enviados`);
+        })();
+
+    } catch (err) {
+        console.error('Erro disparar-numeros:', err.message);
+        if (!res.headersSent) res.status(500).json({ error: err.message });
+    }
+});
+
+
 // POST /api/whatsapp/disparar — Disparo em massa com delay
 router.post('/disparar', async (req, res) => {
     try {
