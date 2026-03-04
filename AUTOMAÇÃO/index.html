@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blindagem de Nome — Limpe seu Nome via Liminar Judicial | Amarilis Soluções</title>
+    <meta name="description"
+        content="Blindagem do seu nome nos birôs de crédito por até 12 meses via liminar judicial baseada no CDC. Retire apontamentos do Serasa, SPC, protestos e BACEN.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <!-- NAVBAR -->
+    <nav class="navbar" id="navbar">
+        <div class="container nav-container">
+            <a href="#top" class="logo">
+                <span class="logo-icon">🌸</span>
+                <span class="logo-text">Amarilis<span class="logo-accent"> Soluções</span></span>
+            </a>
+            <ul class="nav-links" id="navLinks">
+                <li><a href="#top">Home</a></li>
+                <li><a href="#como-funciona">Como Funciona</a></li>
+                <li><a href="#servicos">Serviços</a></li>
+                <li><a href="#depoimentos">Depoimentos</a></li>
+                <li><a href="#faq">FAQ</a></li>
+            </ul>
+            <a href="#form-captura" class="nav-cta">Fazer Consulta</a>
+            <button class="mobile-menu-btn" id="mobileMenuBtn" aria-label="Menu">
+                <span></span><span></span><span></span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- HERO + FORMULÁRIO -->
+    <section class="hero" id="top">
+        <div class="hero-glow hero-glow-1"></div>
+        <div class="hero-glow hero-glow-2"></div>
+        <div class="container hero-container">
+            <div class="hero-content">
+                <span class="hero-badge">⚖️ Proteção legal baseada no CDC</span>
+                <h1><span class="text-gradient">Blindagem</span> do seu nome nos birôs de crédito via <span
+                        class="text-gradient">liminar judicial</span></h1>
+                <p class="hero-subtitle">Retiramos seu nome do Serasa, SPC, Boa Vista e protestos por <strong>6 a 12
+                        meses</strong> através de liminares na Justiça. Você ganha fôlego para reorganizar sua vida
+                    financeira.</p>
+                <div class="hero-trust">
+                    <span>⚖️ Via liminar judicial</span>
+                    <span>📋 Baseado no CDC</span>
+                    <span>🛡️ Blindagem de 6 a 12 meses</span>
+                </div>
+            </div>
+            <div class="hero-form-wrapper" id="form-captura">
+                <div class="form-card">
+                    <div class="form-header">
+                        <h2>⚖️ Faça sua Consulta</h2>
+                        <p>Descubra se você tem direito à blindagem do seu nome</p>
+                    </div>
+                    <form id="leadForm">
+                        <div class="form-group">
+                            <label for="nome">Nome completo *</label>
+                            <input type="text" id="nome" name="nome" placeholder="Seu nome completo" required>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="telefone">WhatsApp *</label>
+                                <input type="tel" id="telefone" name="telefone" placeholder="(15) 99999-9999" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="cpf">CPF</label>
+                                <input type="text" id="cpf" name="cpf" placeholder="000.000.000-00">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="email">E-mail</label>
+                            <input type="email" id="email" name="email" placeholder="seu@email.com">
+                        </div>
+                        <div class="form-group">
+                            <label for="servico">Qual serviço te interessa?</label>
+                            <select id="servico" name="servico">
+                                <option value="">Selecione...</option>
+                                <option value="limpa_nome">Limpa Nome (Serasa, SPC, Boa Vista)</option>
+                                <option value="protesto">Retirada de Protestos</option>
+                                <option value="bacen">Retirada de Apontamentos BACEN</option>
+                                <option value="score">Aumento de Score</option>
+                                <option value="rating">Melhoria de Rating</option>
+                                <option value="completo">Pacote Completo</option>
+                                <option value="nao_sei">Quero entender melhor</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-block" id="submitBtn">
+                            <span class="btn-text">Quero Blindar Meu Nome</span>
+                            <span class="btn-loading" style="display:none;">
+                                <span class="spinner"></span> Enviando...
+                            </span>
+                        </button>
+                        <p class="form-disclaimer">🔒 Seus dados estão seguros. Não compartilhamos com terceiros.</p>
+                    </form>
+                    <!-- Mensagem de sucesso -->
+                    <div class="form-success" id="formSuccess" style="display:none;">
+                        <div class="success-icon">✅</div>
+                        <h3>Cadastro realizado!</h3>
+                        <p>Em instantes você receberá uma mensagem no seu WhatsApp com mais informações sobre a
+                            blindagem do seu nome.</p>
+                        <a href="#" id="whatsappLink" class="btn btn-whatsapp" target="_blank">
+                            💬 Continuar no WhatsApp
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- PROVA SOCIAL -->
+    <section class="social-proof-bar">
+        <div class="container">
+            <div class="proof-items">
+                <div class="proof-item">
+                    <span class="proof-number" data-target="500">0</span>
+                    <span class="proof-text">Nomes blindados</span>
+                </div>
+                <div class="proof-item">
+                    <span class="proof-number" data-target="12">0</span>
+                    <span class="proof-text">Meses de proteção</span>
+                </div>
+                <div class="proof-item">
+                    <span class="proof-number" data-target="98">0</span>
+                    <span class="proof-text">Liminares deferidas</span>
+                </div>
+                <div class="proof-item">
+                    <span class="proof-number" data-target="5">0</span>
+                    <span class="proof-text">Birôs atendidos</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- COMO FUNCIONA -->
+    <section class="how-it-works" id="como-funciona">
+        <div class="container">
+            <div class="section-header">
+                <h2>Como funciona a <span class="text-gradient">blindagem</span>?</h2>
+                <p>Processo 100% legal baseado no Código de Defesa do Consumidor.</p>
+            </div>
+            <div class="steps-grid">
+                <div class="step-card">
+                    <div class="step-number">1</div>
+                    <div class="step-content">
+                        <h3>Consulta Inicial</h3>
+                        <p>Analisamos sua situação nos birôs de crédito (Serasa, SPC, Boa Vista, protestos e BACEN) e
+                            identificamos o que pode ser blindado.</p>
+                    </div>
+                </div>
+                <div class="step-connector">
+                    <div class="connector-line"></div>
+                    <div class="connector-arrow">→</div>
+                </div>
+                <div class="step-card">
+                    <div class="step-number">2</div>
+                    <div class="step-content">
+                        <h3>Ação Judicial</h3>
+                        <p>Entramos com a ação via liminar judicial baseada no CDC. O processo tramita na Justiça e o
+                            juiz defere a proteção do seu nome.</p>
+                    </div>
+                </div>
+                <div class="step-connector">
+                    <div class="connector-line"></div>
+                    <div class="connector-arrow">→</div>
+                </div>
+                <div class="step-card">
+                    <div class="step-number">3</div>
+                    <div class="step-content">
+                        <h3>Nome Blindado!</h3>
+                        <p>Seus apontamentos são retirados dos birôs por 6 a 12 meses. Você ganha fôlego para
+                            reorganizar suas finanças com nome limpo.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SERVIÇOS -->
+    <section class="features" id="servicos">
+        <div class="container">
+            <div class="section-header">
+                <h2>Nossos <span class="text-gradient">serviços</span></h2>
+                <p>Soluções jurídicas completas para sua proteção ao crédito.</p>
+            </div>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">🛡️</div>
+                    <h3>Limpa Nome</h3>
+                    <p>Retirada de apontamentos negativos do Serasa, SPC e Boa Vista via liminar judicial. Blindagem de
+                        6 a 12 meses.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">📜</div>
+                    <h3>Retirada de Protestos</h3>
+                    <p>Remoção de protestos cartorários que impedem acesso a crédito e financiamentos.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🏦</div>
+                    <h3>BACEN</h3>
+                    <p>Retirada de apontamentos do Banco Central que afetam sua vida financeira e movimentação bancária.
+                    </p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">📊</div>
+                    <h3>Aumento de Score</h3>
+                    <p>Com os apontamentos removidos, seu score de crédito sobe naturalmente, abrindo portas para novas
+                        oportunidades.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">⭐</div>
+                    <h3>Melhoria de Rating</h3>
+                    <p>Elevação do seu rating financeiro, melhorando sua classificação perante instituições bancárias e
+                        financeiras.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">⚖️</div>
+                    <h3>Base Legal (CDC)</h3>
+                    <p>Todo o processo é amparado pelo Código de Defesa do Consumidor. É seu direito ter o nome
+                        protegido enquanto regulariza suas pendências.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ANTES E DEPOIS -->
+    <section class="before-after">
+        <div class="container">
+            <div class="section-header">
+                <h2>De <span class="text-red">negativado</span> a <span class="text-gradient">nome blindado</span></h2>
+                <p>Veja o que a blindagem judicial faz pelo seu nome.</p>
+            </div>
+            <div class="comparison-grid">
+                <div class="comparison-card comparison-before">
+                    <div class="comparison-header">❌ SEM BLINDAGEM</div>
+                    <ul>
+                        <li>Nome sujo no Serasa, SPC e Boa Vista</li>
+                        <li>Score baixo</li>
+                        <li>Sem acesso a crédito ou financiamento</li>
+                        <li>Protestos bloqueando contas</li>
+                        <li>Apontamentos BACEN ativos</li>
+                    </ul>
+                </div>
+                <div class="comparison-card comparison-after">
+                    <div class="comparison-header">✅ COM BLINDAGEM</div>
+                    <ul>
+                        <li>Nome limpo nos birôs por 6 a 12 meses</li>
+                        <li>Score em recuperação</li>
+                        <li>Cartões e financiamentos liberados</li>
+                        <li>Protestos retirados</li>
+                        <li>Fôlego para reorganizar as finanças</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="cta-center">
+                <a href="#form-captura" class="btn btn-primary btn-lg">Quero Blindar Meu Nome →</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- DEPOIMENTOS -->
+    <section class="testimonials" id="depoimentos">
+        <div class="container">
+            <div class="section-header">
+                <h2>Quem já <span class="text-gradient">blindou o nome</span> com a gente</h2>
+                <p>Histórias reais de clientes que recuperaram o crédito.</p>
+            </div>
+            <div class="testimonials-grid">
+                <div class="testimonial-card">
+                    <div class="testimonial-stars">⭐⭐⭐⭐⭐</div>
+                    <p class="testimonial-text">"Estava negativado há 3 anos. Com a liminar, meu nome saiu do Serasa e
+                        do SPC. Consegui financiar meu carro em poucos dias!"</p>
+                    <div class="testimonial-author">
+                        <div class="author-avatar">M</div>
+                        <div><strong>Marina S.</strong><span>Sorocaba - SP</span></div>
+                    </div>
+                </div>
+                <div class="testimonial-card">
+                    <div class="testimonial-stars">⭐⭐⭐⭐⭐</div>
+                    <p class="testimonial-text">"Não sabia que tinha esse direito pelo CDC. Em menos de um mês meu nome
+                        estava limpo e consegui abrir conta em banco novamente."</p>
+                    <div class="testimonial-author">
+                        <div class="author-avatar">R</div>
+                        <div><strong>Roberto C.</strong><span>Campinas - SP</span></div>
+                    </div>
+                </div>
+                <div class="testimonial-card">
+                    <div class="testimonial-stars">⭐⭐⭐⭐⭐</div>
+                    <p class="testimonial-text">"Tinham retirado protestos e apontamentos do BACEN que me impediam de
+                        trabalhar. Profissionais sérios e processo todo transparente."</p>
+                    <div class="testimonial-author">
+                        <div class="author-avatar">A</div>
+                        <div><strong>Ana Paula L.</strong><span>São Paulo - SP</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FAQ -->
+    <section class="faq" id="faq">
+        <div class="container">
+            <div class="section-header">
+                <h2>Perguntas <span class="text-gradient">frequentes</span></h2>
+            </div>
+            <div class="faq-list">
+                <details class="faq-item">
+                    <summary>O que é a blindagem do nome?</summary>
+                    <div class="faq-answer">
+                        <p>É a retirada dos apontamentos negativos dos birôs de crédito (Serasa, SPC, Boa Vista) e
+                            protestos através de uma liminar judicial. A blindagem dura de 6 a 12 meses, período em que
+                            seu nome fica limpo.</p>
+                    </div>
+                </details>
+                <details class="faq-item">
+                    <summary>A dívida é perdoada?</summary>
+                    <div class="faq-answer">
+                        <p><strong>Não.</strong> A dívida continua existindo. O que fazemos é retirar o apontamento
+                            negativo dos birôs de crédito via liminar. Esse período de blindagem serve para você ter
+                            fôlego e reorganizar suas finanças para pagar as dívidas.</p>
+                    </div>
+                </details>
+                <details class="faq-item">
+                    <summary>É legal? Tem base jurídica?</summary>
+                    <div class="faq-answer">
+                        <p>Sim! O processo é 100% legal e amparado pelo <strong>Código de Defesa do Consumidor
+                                (CDC)</strong>. A liminar é deferida por um juiz de direito.</p>
+                    </div>
+                </details>
+                <details class="faq-item">
+                    <summary>Quais documentos preciso enviar?</summary>
+                    <div class="faq-answer">
+                        <p>RG ou CNH, CPF, Comprovante de Residência e uma Selfie com o documento em mãos. Tudo digital
+                            e seguro.</p>
+                    </div>
+                </details>
+                <details class="faq-item">
+                    <summary>Quanto tempo demora?</summary>
+                    <div class="faq-answer">
+                        <p>Após a entrada da ação, a liminar costuma ser deferida em poucos dias. A retirada efetiva dos
+                            apontamentos ocorre após o cumprimento da decisão judicial.</p>
+                    </div>
+                </details>
+                <details class="faq-item">
+                    <summary>Quanto tempo dura a proteção?</summary>
+                    <div class="faq-answer">
+                        <p>A blindagem dura em média de <strong>6 a 12 meses</strong>, dependendo do caso e do andamento
+                            do processo judicial.</p>
+                    </div>
+                </details>
+                <details class="faq-item">
+                    <summary>Vocês atendem de qualquer lugar do Brasil?</summary>
+                    <div class="faq-answer">
+                        <p>Sim! Atendimento 100% digital via WhatsApp. Atendemos todo o Brasil.</p>
+                    </div>
+                </details>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA FINAL -->
+    <section class="cta-final" id="cta-final">
+        <div class="container">
+            <div class="cta-box">
+                <h2>Você tem <span class="text-gradient">direito</span> de ter seu nome <span
+                        class="text-gradient">limpo</span>.</h2>
+                <p>O CDC garante sua proteção. Faça sua consulta e descubra como a blindagem judicial pode te
+                    ajudar.</p>
+                <a href="#form-captura" class="btn btn-primary btn-xl">⚖️ Fazer Minha Consulta</a>
+                <span class="cta-note">Processo legal • Sem compromisso • Atendimento imediato</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer class="footer">
+        <div class="container footer-container">
+            <div class="footer-brand">
+                <span class="logo-icon">🌸</span>
+                <span class="logo-text">Amarilis<span class="logo-accent"> Soluções</span></span>
+                <p>Blindagem de nome e proteção ao crédito via CDC.</p>
+            </div>
+            <div class="footer-links-col">
+                <h4>Links</h4>
+                <a href="#top">Home</a>
+                <a href="#como-funciona">Como Funciona</a>
+                <a href="#servicos">Serviços</a>
+                <a href="#faq">FAQ</a>
+            </div>
+            <div class="footer-links-col">
+                <h4>Contato</h4>
+                <a href="https://wa.me/5515999999999" target="_blank">WhatsApp</a>
+                <a href="https://instagram.com/" target="_blank">Instagram</a>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2026 Amarilis Soluções. Todos os direitos reservados.</p>
+        </div>
+    </footer>
+
+    <!-- WHATSAPP FLOAT -->
+    <a href="https://wa.me/5515999999999?text=Olá! Quero saber mais sobre a blindagem do meu nome."
+        class="whatsapp-float" target="_blank" aria-label="WhatsApp">
+        <svg viewBox="0 0 32 32" width="28" height="28" fill="white">
+            <path
+                d="M16.004 0h-.008C7.174 0 0 7.176 0 16.004c0 3.5 1.128 6.744 3.046 9.378L1.054 31.29l6.118-1.962a15.93 15.93 0 008.832 2.668C24.824 31.996 32 24.82 32 16.004 32 7.174 24.824 0 16.004 0zm9.53 22.61c-.4 1.126-2.342 2.152-3.226 2.226-.884.076-1.706.4-5.754-1.198-4.87-1.924-7.942-6.948-8.18-7.272-.24-.324-1.952-2.596-1.952-4.952s1.234-3.51 1.672-3.992c.44-.48.958-.6 1.276-.6.318 0 .636.002.914.016.294.016.688-.112 1.076.82.4.958 1.354 3.312 1.474 3.552.118.24.198.52.04.838-.16.318-.24.518-.478.798-.24.28-.504.626-.72.838-.24.24-.488.498-.21.978.28.48 1.242 2.048 2.668 3.318 1.834 1.632 3.38 2.138 3.86 2.378.48.24.76.2 1.038-.12.28-.318 1.196-1.396 1.516-1.876.318-.48.636-.4 1.076-.24.44.16 2.794 1.318 3.274 1.558.48.24.798.358.918.558.118.198.118 1.158-.282 2.284z" />
+        </svg>
+    </a>
+
+    <script src="script.js"></script>
+</body>
+
+</html>

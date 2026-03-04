@@ -1,0 +1,193 @@
+{
+  "name": "Instagram DM - Envio de Link por Palavra-Chave",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "instagram-webhook",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "a1b2c3d4-0001-0001-0001-000000000001",
+      "name": "Webhook Instagram",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [240, 300],
+      "webhookId": "instagram-dm-trigger"
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={{ $json.body['hub.challenge'] }}",
+        "options": {}
+      },
+      "id": "a1b2c3d4-0002-0002-0002-000000000002",
+      "name": "Responder Verificação Meta",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [460, 160]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $json.body['hub.mode'] }}",
+              "operation": "equal",
+              "value2": "subscribe"
+            }
+          ]
+        }
+      },
+      "id": "a1b2c3d4-0003-0003-0003-000000000003",
+      "name": "É Verificação?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [460, 300]
+    },
+    {
+      "parameters": {
+        "functionCode": "const body = $input.first().json.body;\n\nconst results = [];\n\n// Normaliza texto: remove acentos e converte pra minúsculo\nfunction normalizar(texto) {\n  return texto\n    .toLowerCase()\n    .normalize('NFD')\n    .replace(/[\\u0300-\\u036f]/g, '');\n}\n\nif (body && body.entry) {\n  for (const entry of body.entry) {\n    const messaging = entry.messaging || [];\n    for (const msg of messaging) {\n      if (msg.message && msg.message.text) {\n        results.push({\n          sender_id: msg.sender.id,\n          message_text: msg.message.text,\n          message_lower: msg.message.text.toLowerCase(),\n          message_normalizado: normalizar(msg.message.text)\n        });\n      }\n    }\n  }\n}\n\nreturn results.map(r => ({ json: r }));"
+      },
+      "id": "a1b2c3d4-0004-0004-0004-000000000004",
+      "name": "Extrair Mensagem",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [680, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $json.message_normalizado }}",
+              "operation": "contains",
+              "value2": "analise"
+            }
+          ]
+        }
+      },
+      "id": "a1b2c3d4-0005-0005-0005-000000000005",
+      "name": "Contém Palavra-Chave?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [900, 300]
+    },
+    {
+      "parameters": {
+        "url": "https://graph.facebook.com/v19.0/me/messages",
+        "authentication": "none",
+        "method": "POST",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "access_token",
+              "value": "SEU_PAGE_ACCESS_TOKEN_AQUI"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyContentType": "json",
+        "jsonBody": "={\n  \"recipient\": {\n    \"id\": \"{{ $json.sender_id }}\"\n  },\n  \"message\": {\n    \"text\": \"Olá! 😊 Aqui está o link que você pediu:\\n\\nhttps://forms.gle/hUjkAbbjKBhnQ4rq5\\n\\nQualquer dúvida é só chamar!\"\n  }\n}",
+        "options": {}
+      },
+      "id": "a1b2c3d4-0006-0006-0006-000000000006",
+      "name": "Enviar Link via DM",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [1120, 220]
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "EVENT_RECEIVED",
+        "options": {}
+      },
+      "id": "a1b2c3d4-0007-0007-0007-000000000007",
+      "name": "Responder OK ao Meta",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [1120, 400]
+    }
+  ],
+  "connections": {
+    "Webhook Instagram": {
+      "main": [
+        [
+          {
+            "node": "É Verificação?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "É Verificação?": {
+      "main": [
+        [
+          {
+            "node": "Responder Verificação Meta",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Extrair Mensagem",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extrair Mensagem": {
+      "main": [
+        [
+          {
+            "node": "Contém Palavra-Chave?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Contém Palavra-Chave?": {
+      "main": [
+        [
+          {
+            "node": "Enviar Link via DM",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Responder OK ao Meta",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Enviar Link via DM": {
+      "main": [
+        [
+          {
+            "node": "Responder OK ao Meta",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": ["instagram", "automation", "dm"],
+  "triggerCount": 0,
+  "updatedAt": "2024-01-01T00:00:00.000Z",
+  "versionId": "1"
+}

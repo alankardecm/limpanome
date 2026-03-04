@@ -1,0 +1,11 @@
+Token WhatsApp Business API
+Gerado em: 28/02/2026
+System User: Alan Detox (61555068887170)
+App: Amarilis Soluções
+Permissões: whatsapp_business_management, whatsapp_business_messaging
+Validade: 60 dias (expira ~29/04/2026)
+Phone Number ID: 886190107912873
+Número: +55 19 99630-9592
+
+Token:
+EAADPOodrpckBQz61G1rpBf3E3EioCZCdazn8wiUhl21yCmPMj2WXZAGrB5pBsOSdYmBLTVVhpOENKjZBALOfZC4zYYuGqTADxlYJOQbvpeE3ZC6D14YyJXXBff17DzFwT73cdgF6ardHuUxBNrZCBfJX4zDCCDKtgDemsgHIOZBBe7ZCIwriIbuRZBcMVr90Hi7QyYqSgvlCS1QihEGGp7QqJPOFfYZCbsoK1AudYEZApmu

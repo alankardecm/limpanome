@@ -1,0 +1,233 @@
+{
+    "name": "Limpa Nome - Disparo em Massa (Broadcast)",
+    "nodes": [
+        {
+            "parameters": {
+                "httpMethod": "POST",
+                "path": "limpa-nome-broadcast",
+                "responseMode": "lastNode",
+                "options": {}
+            },
+            "id": "brd-0001-0001-0001-000000000001",
+            "name": "Webhook - Iniciar Disparo",
+            "type": "n8n-nodes-base.webhook",
+            "typeVersion": 2,
+            "position": [
+                240,
+                300
+            ],
+            "webhookId": "limpa-nome-broadcast"
+        },
+        {
+            "parameters": {
+                "functionCode": "const body = $input.first().json.body || $input.first().json;\nconst contatos = body.contatos || [];\nconst mensagem = body.mensagem || 'Olá, {nome}! Você sabia que pode ter seu nome retirado do Serasa e SPC por até 12 meses via liminar judicial? É 100% legal e baseado no CDC. Quer saber mais? Responda SIM! — Amarilis Soluções';\n\nconst resultados = [];\nfor (const contato of contatos) {\n  let tel = (contato.telefone || contato.phone || '').replace(/\\D/g, '');\n  if (!tel) continue;\n  if (!tel.startsWith('55')) tel = '55' + tel;\n  \n  resultados.push({\n    json: {\n      nome: contato.nome || contato.name || 'Cliente',\n      telefone: tel,\n      mensagem: mensagem.replace('{nome}', contato.nome || contato.name || 'Cliente')\n    }\n  });\n}\n\nreturn resultados.length > 0 ? resultados : [{ json: { error: 'Nenhum contato válido' } }];"
+            },
+            "id": "brd-0002-0002-0002-000000000002",
+            "name": "Processar Lista de Contatos",
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 2,
+            "position": [
+                480,
+                300
+            ]
+        },
+        {
+            "parameters": {
+                "conditions": {
+                    "options": {
+                        "caseSensitive": true,
+                        "leftValue": "",
+                        "typeValidation": "strict"
+                    },
+                    "conditions": [
+                        {
+                            "id": "check-error",
+                            "leftValue": "={{ $json.error }}",
+                            "rightValue": "",
+                            "operator": {
+                                "type": "string",
+                                "operation": "isEmpty"
+                            }
+                        }
+                    ],
+                    "combinator": "and"
+                }
+            },
+            "id": "brd-0003-0003-0003-000000000003",
+            "name": "Tem Contatos?",
+            "type": "n8n-nodes-base.if",
+            "typeVersion": 2,
+            "position": [
+                720,
+                300
+            ]
+        },
+        {
+            "parameters": {
+                "amount": "={{ Math.floor(Math.random() * 20) + 10 }}",
+                "unit": "seconds"
+            },
+            "id": "brd-0004-0004-0004-000000000004",
+            "name": "Delay Aleatório (10-30s)",
+            "type": "n8n-nodes-base.wait",
+            "typeVersion": 1.1,
+            "position": [
+                960,
+                220
+            ]
+        },
+        {
+            "parameters": {
+                "url": "=https://graph.facebook.com/v19.0/SEU_PHONE_NUMBER_ID/messages",
+                "authentication": "none",
+                "method": "POST",
+                "sendHeaders": true,
+                "headerParameters": {
+                    "parameters": [
+                        {
+                            "name": "Authorization",
+                            "value": "Bearer SEU_ACCESS_TOKEN_META"
+                        },
+                        {
+                            "name": "Content-Type",
+                            "value": "application/json"
+                        }
+                    ]
+                },
+                "sendBody": true,
+                "bodyContentType": "json",
+                "jsonBody": "={\n  \"messaging_product\": \"whatsapp\",\n  \"to\": \"{{ $json.telefone }}\",\n  \"type\": \"text\",\n  \"text\": {\n    \"body\": \"{{ $json.mensagem }}\"\n  }\n}",
+                "options": {}
+            },
+            "id": "brd-0005-0005-0005-000000000005",
+            "name": "Enviar WhatsApp",
+            "type": "n8n-nodes-base.httpRequest",
+            "typeVersion": 4.2,
+            "position": [
+                1200,
+                220
+            ]
+        },
+        {
+            "parameters": {
+                "values": {
+                    "string": [
+                        {
+                            "name": "status",
+                            "value": "enviado"
+                        },
+                        {
+                            "name": "para",
+                            "value": "={{ $json.telefone }}"
+                        }
+                    ]
+                },
+                "options": {}
+            },
+            "id": "brd-0006-0006-0006-000000000006",
+            "name": "Log Envio",
+            "type": "n8n-nodes-base.set",
+            "typeVersion": 3.4,
+            "position": [
+                1420,
+                220
+            ]
+        },
+        {
+            "parameters": {
+                "values": {
+                    "string": [
+                        {
+                            "name": "status",
+                            "value": "erro_sem_contatos"
+                        }
+                    ]
+                },
+                "options": {}
+            },
+            "id": "brd-0007-0007-0007-000000000007",
+            "name": "Erro - Sem Contatos",
+            "type": "n8n-nodes-base.set",
+            "typeVersion": 3.4,
+            "position": [
+                960,
+                420
+            ]
+        }
+    ],
+    "connections": {
+        "Webhook - Iniciar Disparo": {
+            "main": [
+                [
+                    {
+                        "node": "Processar Lista de Contatos",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Processar Lista de Contatos": {
+            "main": [
+                [
+                    {
+                        "node": "Tem Contatos?",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Tem Contatos?": {
+            "main": [
+                [
+                    {
+                        "node": "Delay Aleatório (10-30s)",
+                        "type": "main",
+                        "index": 0
+                    }
+                ],
+                [
+                    {
+                        "node": "Erro - Sem Contatos",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Delay Aleatório (10-30s)": {
+            "main": [
+                [
+                    {
+                        "node": "Enviar WhatsApp",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Enviar WhatsApp": {
+            "main": [
+                [
+                    {
+                        "node": "Log Envio",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        }
+    },
+    "settings": {
+        "executionOrder": "v1"
+    },
+    "tags": [
+        "limpa-nome",
+        "broadcast",
+        "whatsapp",
+        "disparo"
+    ],
+    "triggerCount": 0,
+    "versionId": "1"
+}

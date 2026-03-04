@@ -85,6 +85,9 @@ const App = {
       tarefas: 'Tarefas',
       pipeline: 'Pipeline',
       precos: 'Tabela de Preços',
+      prospeccao: 'Prospecção',
+      'ia-sdr': 'IA SDR',
+      whatsapp: 'WhatsApp — Disparo em Massa',
     };
     document.getElementById('pageTitle').textContent = titles[page] || page;
 
@@ -96,6 +99,9 @@ const App = {
       case 'tarefas': TarefasPage.render(); break;
       case 'pipeline': PipelinePage.render(); break;
       case 'precos': PrecosPage.render(); break;
+      case 'prospeccao': ProspeccaoPage.render(); break;
+      case 'ia-sdr': IaSdrPage.render(); break;
+      case 'whatsapp': WhatsappPage.render(); break;
       default: DashboardPage.render();
     }
   },

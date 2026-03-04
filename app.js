@@ -14,6 +14,7 @@ app.use(express.urlencoded({ extended: true }));
 // Rotas públicas (sem autenticação)
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/webhook', require('./routes/webhook'));
+app.use('/api/ia-sdr', require('./routes/ia-sdr')); // IA SDR webhook é público
 
 // Health check (público)
 app.get('/api/health', (req, res) => {
@@ -33,6 +34,9 @@ app.use('/api/tarefas', require('./routes/tarefas'));
 app.use('/api/dashboard', require('./routes/dashboard'));
 app.use('/api/documentos', require('./routes/documentos'));
 app.use('/api/precos', require('./routes/precos'));
+app.use('/api/prospeccao', require('./routes/prospeccao'));
+app.use('/api/whatsapp', require('./routes/whatsapp'));
+
 
 // Error handler global
 app.use((err, req, res, next) => {

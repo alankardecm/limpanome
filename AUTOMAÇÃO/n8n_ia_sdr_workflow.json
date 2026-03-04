@@ -1,0 +1,225 @@
+{
+    "name": "Limpa Nome - IA SDR WhatsApp",
+    "nodes": [
+        {
+            "parameters": {
+                "httpMethod": "POST",
+                "path": "amarilis-whatsapp",
+                "responseMode": "responseNode",
+                "options": {}
+            },
+            "id": "webhook-post",
+            "name": "📱 WhatsApp Webhook POST",
+            "type": "n8n-nodes-base.webhook",
+            "typeVersion": 1.1,
+            "position": [
+                250,
+                300
+            ],
+            "webhookId": "ia-sdr-post"
+        },
+        {
+            "parameters": {
+                "httpMethod": "GET",
+                "path": "amarilis-whatsapp",
+                "responseMode": "responseNode",
+                "options": {}
+            },
+            "id": "webhook-get",
+            "name": "🔐 WhatsApp Webhook GET (Verificação)",
+            "type": "n8n-nodes-base.webhook",
+            "typeVersion": 1.1,
+            "position": [
+                250,
+                100
+            ],
+            "webhookId": "ia-sdr-get"
+        },
+        {
+            "parameters": {
+                "respondWith": "text",
+                "responseBody": "={{ $json.query['hub.challenge'] }}",
+                "options": {}
+            },
+            "id": "respond-get",
+            "name": "✅ Responder Verificação",
+            "type": "n8n-nodes-base.respondToWebhook",
+            "typeVersion": 1,
+            "position": [
+                500,
+                100
+            ]
+        },
+        {
+            "parameters": {
+                "conditions": {
+                    "options": {
+                        "caseSensitive": true
+                    },
+                    "conditions": [
+                        {
+                            "id": "check-messages",
+                            "leftValue": "={{ $json.body?.entry?.[0]?.changes?.[0]?.value?.messages?.[0]?.text?.body }}",
+                            "rightValue": "",
+                            "operator": {
+                                "type": "string",
+                                "operation": "isNotEmpty"
+                            }
+                        }
+                    ]
+                },
+                "options": {}
+            },
+            "id": "check-message",
+            "name": "🔍 Tem Mensagem de Texto?",
+            "type": "n8n-nodes-base.if",
+            "typeVersion": 2,
+            "position": [
+                500,
+                300
+            ]
+        },
+        {
+            "parameters": {
+                "mode": "raw",
+                "jsonOutput": "={{ {\n  \"telefone\": $json.body.entry[0].changes[0].value.messages[0].from,\n  \"nome\": $json.body.entry[0].changes[0].value.contacts[0].profile.name,\n  \"mensagem\": $json.body.entry[0].changes[0].value.messages[0].text.body\n} }}",
+                "options": {}
+            },
+            "id": "extract-data",
+            "name": "📋 Extrair Dados",
+            "type": "n8n-nodes-base.set",
+            "typeVersion": 3.3,
+            "position": [
+                750,
+                250
+            ]
+        },
+        {
+            "parameters": {
+                "url": "https://limpanome-t73d.vercel.app/api/ia-sdr/webhook",
+                "sendBody": true,
+                "specifyBody": "json",
+                "jsonBody": "={{ {\n  \"telefone\": $json.telefone,\n  \"nome\": $json.nome,\n  \"mensagem\": $json.mensagem\n} }}",
+                "options": {
+                    "timeout": 30000
+                }
+            },
+            "id": "call-ia-sdr",
+            "name": "🤖 Chamar IA SDR",
+            "type": "n8n-nodes-base.httpRequest",
+            "typeVersion": 4.1,
+            "position": [
+                1000,
+                250
+            ]
+        },
+        {
+            "parameters": {
+                "respondWith": "json",
+                "responseBody": "={{ { \"status\": \"received\" } }}",
+                "options": {}
+            },
+            "id": "respond-ok",
+            "name": "✅ Responder OK",
+            "type": "n8n-nodes-base.respondToWebhook",
+            "typeVersion": 1,
+            "position": [
+                1250,
+                250
+            ]
+        },
+        {
+            "parameters": {
+                "respondWith": "json",
+                "responseBody": "={{ { \"status\": \"ignored\", \"reason\": \"not a text message\" } }}",
+                "options": {}
+            },
+            "id": "respond-ignored",
+            "name": "⏭️ Ignorar (não é texto)",
+            "type": "n8n-nodes-base.respondToWebhook",
+            "typeVersion": 1,
+            "position": [
+                750,
+                450
+            ]
+        }
+    ],
+    "connections": {
+        "📱 WhatsApp Webhook POST": {
+            "main": [
+                [
+                    {
+                        "node": "🔍 Tem Mensagem de Texto?",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "🔐 WhatsApp Webhook GET (Verificação)": {
+            "main": [
+                [
+                    {
+                        "node": "✅ Responder Verificação",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "🔍 Tem Mensagem de Texto?": {
+            "main": [
+                [
+                    {
+                        "node": "📋 Extrair Dados",
+                        "type": "main",
+                        "index": 0
+                    }
+                ],
+                [
+                    {
+                        "node": "⏭️ Ignorar (não é texto)",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "📋 Extrair Dados": {
+            "main": [
+                [
+                    {
+                        "node": "🤖 Chamar IA SDR",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "🤖 Chamar IA SDR": {
+            "main": [
+                [
+                    {
+                        "node": "✅ Responder OK",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        }
+    },
+    "settings": {
+        "executionOrder": "v1"
+    },
+    "staticData": null,
+    "tags": [
+        {
+            "name": "Limpa Nome"
+        },
+        {
+            "name": "IA SDR"
+        }
+    ],
+    "triggerCount": 2,
+    "active": false
+}

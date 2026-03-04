@@ -94,6 +94,39 @@ router.post('/forms', async (req, res) => {
       data_vencimento: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()
     });
 
+    // Notificar consultora via WhatsApp
+    const notifToken = process.env.META_WHATSAPP_TOKEN;
+    const notifPhoneId = process.env.META_PHONE_NUMBER_ID;
+    const notifDestino = process.env.NOTIF_WHATSAPP_NUMERO || '5519992244838';
+
+    if (notifToken && notifPhoneId) {
+      const notifMsg = `📋 *NOVO LEAD - GOOGLE FORMS!*\n\n` +
+        `👤 *Nome:* ${nome}\n` +
+        `📱 *Telefone:* ${telefone || 'Não informado'}\n` +
+        `📧 *Email:* ${email || 'Não informado'}\n` +
+        `🎯 *Serviço:* ${servico || 'Não especificado'}\n\n` +
+        `⚡ Abra o CRM para entrar em contato!`;
+
+      try {
+        await fetch(`https://graph.facebook.com/v19.0/${notifPhoneId}/messages`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${notifToken}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            messaging_product: 'whatsapp',
+            to: notifDestino,
+            type: 'text',
+            text: { body: notifMsg }
+          })
+        });
+        console.log('Notificação Forms enviada para:', notifDestino);
+      } catch (notifErr) {
+        console.error('Erro ao enviar notificação Forms:', notifErr.message);
+      }
+    }
+
     res.status(201).json({ message: 'Lead cadastrado com sucesso', cliente_id: cliente.id });
   } catch (err) {
     console.error('Erro no webhook Forms:', err);
@@ -217,6 +250,40 @@ router.post('/generic', async (req, res) => {
       descricao: `Lead captado via webhook (${origem})`,
       usuario: 'webhook-generic'
     });
+
+    // Notificar consultora via WhatsApp
+    const notifToken = process.env.META_WHATSAPP_TOKEN;
+    const notifPhoneId = process.env.META_PHONE_NUMBER_ID;
+    const notifDestino = process.env.NOTIF_WHATSAPP_NUMERO || '5519992244838';
+
+    if (notifToken && notifPhoneId) {
+      const notifMsg = `📋 *NOVO LEAD - LANDING PAGE!*\n\n` +
+        `👤 *Nome:* ${nome}\n` +
+        `📱 *Telefone:* ${telefone || 'Não informado'}\n` +
+        `📧 *Email:* ${email || 'Não informado'}\n` +
+        `🎯 *Interesse:* ${dados.observacoes || 'Não especificado'}\n` +
+        `📌 *Origem:* ${origem}\n\n` +
+        `⚡ Abra o CRM para entrar em contato!`;
+
+      try {
+        await fetch(`https://graph.facebook.com/v19.0/${notifPhoneId}/messages`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${notifToken}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            messaging_product: 'whatsapp',
+            to: notifDestino,
+            type: 'text',
+            text: { body: notifMsg }
+          })
+        });
+        console.log('Notificação LP enviada para:', notifDestino);
+      } catch (notifErr) {
+        console.error('Erro ao enviar notificação LP:', notifErr.message);
+      }
+    }
 
     res.status(201).json({ message: 'Lead cadastrado', cliente_id: cliente.id });
   } catch (err) {

@@ -19,12 +19,16 @@ Sistema CRM completo para gestão de clientes do projeto **Limpa Nome** — serv
 8. [Autenticação](#-autenticação)
 9. [Funcionalidades do CRM](#-funcionalidades-do-crm)
 10. [API — Endpoints](#-api--endpoints)
-11. [Google Forms — Captação de Leads](#-google-forms--captação-de-leads)
-12. [Sistema de Documentos (PDFs)](#-sistema-de-documentos-pdfs)
-13. [Banco de Dados — Tabelas](#-banco-de-dados--tabelas)
-14. [Variáveis de Ambiente](#-variáveis-de-ambiente)
-15. [Guia de Uso do CRM](#-guia-de-uso-do-crm)
-16. [Troubleshooting](#-troubleshooting)
+11. [Prospecção — Alertas, Funil e Extrator Maps](#-prospecção--alertas-funil-e-extrator-maps)
+12. [IA SDR — Agente de Conversão via WhatsApp](#-ia-sdr--agente-de-conversão-via-whatsapp)
+13. [Landing Page de Captura](#-landing-page-de-captura)
+14. [Automações N8N](#-automações-n8n)
+15. [Google Forms — Captação de Leads](#-google-forms--captação-de-leads)
+16. [Sistema de Documentos (PDFs)](#-sistema-de-documentos-pdfs)
+17. [Banco de Dados — Tabelas](#-banco-de-dados--tabelas)
+18. [Variáveis de Ambiente](#-variáveis-de-ambiente)
+19. [Guia de Uso do CRM](#-guia-de-uso-do-crm)
+20. [Troubleshooting](#-troubleshooting)
 
 ---
 
@@ -43,12 +47,15 @@ O **CRM Limpa Nome** é uma aplicação web que gerencia todo o ciclo de vida do
 ### Fluxo do Cliente
 
 ```
-Google Forms → Lead captado → Análise → Processo/Liminar → Acompanhamento → Conclusão
-     ↓                                        ↓
-  Webhook automático              Upload PDF (antes/depois)
-     ↓                                        ↓
-  CRM cria cliente              Comparação visual de resultados
+Google Forms ──┐                                               ┌── Upload PDF (antes/depois)
+Landing Page ──┼── Lead captado → Contato → Análise → Liminar ─┤
+Extrator Maps ─┤        ↑                       ↓              └── Comparação visual
+WhatsApp IA ───┘   IA SDR (auto)         Processo Judicial
 ```
+
+### Modelo de Negócio
+
+> **A empresa NÃO negocia dívidas.** O serviço é de **blindagem de nome** nos birôs de crédito (Serasa, SPC, Boa Vista, protestos, BACEN) via **liminar judicial** baseada no **CDC** (Código de Defesa do Consumidor). A blindagem dura **6 a 12 meses**, período para o cliente reorganizar suas finanças.
 
 ---
 
@@ -70,6 +77,8 @@ Google Forms → Lead captado → Análise → Processo/Liminar → Acompanhamen
 │  │               │    │   ├── routes/historico.js   │  │
 │  │               │    │   ├── routes/dashboard.js  │  │
 │  │               │    │   ├── routes/documentos.js │  │
+│  │               │    │   ├── routes/prospeccao.js │  │
+│  │               │    │   ├── routes/ia-sdr.js     │  │
 │  │               │    │   └── routes/webhook.js    │  │
 │  └──────────────┘    └───────────────────────────┘   │
 └───────────────────────────┬──────────────────────────┘
@@ -119,7 +128,8 @@ limpanome/
 │   └── index.js              # Entry point Vercel serverless
 ├── lib/
 │   ├── supabase.js           # Cliente Supabase configurado
-│   └── authMiddleware.js     # Middleware JWT
+│   ├── authMiddleware.js     # Middleware JWT
+│   └── sdrAgent.js           # 🤖 Agente IA SDR (prompt + OpenAI)
 ├── routes/
 │   ├── auth.js               # Login / verificação de token
 │   ├── clientes.js           # CRUD de clientes
@@ -130,7 +140,9 @@ limpanome/
 │   ├── tarefas.js            # CRUD de tarefas/follow-ups
 │   ├── dashboard.js          # Métricas e estatísticas
 │   ├── documentos.js         # Upload/download de PDFs
-│   └── webhook.js            # Google Forms + WhatsApp
+│   ├── webhook.js            # Google Forms + WhatsApp
+│   ├── prospeccao.js         # 🎯 Alertas, funil, extrator Maps
+│   └── ia-sdr.js             # 🤖 IA SDR webhook + conversas
 ├── public/
 │   ├── css/
 │   │   └── style.css         # Design system completo
@@ -146,15 +158,27 @@ limpanome/
 │   │       ├── cliente-detalhe.js # Ficha completa do cliente
 │   │       ├── processos.js      # Listagem de processos
 │   │       ├── tarefas.js        # Gestão de tarefas
-│   │       └── pipeline.js       # Pipeline visual (Kanban)
+│   │       ├── pipeline.js       # Pipeline visual (Kanban)
+│   │       ├── precos.js         # Tabela de preços
+│   │       ├── prospeccao.js     # 🎯 Prospecção (alertas/funil/Maps)
+│   │       └── ia-sdr.js         # 🤖 Painel de conversas IA
 │   └── index.html            # Página única (SPA)
+├── AUTOMAÇÃO/                # 🌐 Landing Page + N8N Workflows
+│   ├── index.html            # Landing page de captura
+│   ├── style.css             # Estilos da landing page
+│   ├── script.js             # Lógica do form + WhatsApp
+│   ├── dashboard.html        # Dashboard standalone
+│   ├── n8n_workflow_welcome.json   # Boas-vindas WhatsApp
+│   ├── n8n_workflow_followup.json  # Follow-up dia 1/3/7
+│   ├── n8n_workflow_broadcast.json # Disparo em massa
+│   └── vercel.json           # Config deploy landing page
 ├── app.js                    # Express app (rotas + middleware)
 ├── server.js                 # Servidor local (dev)
 ├── vercel.json               # Config de deploy Vercel
 ├── supabase-schema.sql       # Schema completo do banco
 ├── google-apps-script.js     # Script do Google Forms webhook
 ├── package.json
-├── .env                      # Variáveis locais (não comitado)
+├── .env.local                # Variáveis locais (não comitado)
 ├── .env.example              # Exemplo de variáveis
 └── .gitignore
 ```
@@ -470,6 +494,26 @@ Authorization: Bearer <token_jwt>
 - `cliente_id` — ID do cliente
 - `tipo` — `consulta_antes`, `consulta_depois`, `contrato`, `procuracao`, `comprovante`, `outro`
 - `descricao` — descrição opcional
+
+### Prospecção (protegido)
+
+| Método | Endpoint | Descrição |
+|--------|----------|-----------|
+| `GET` | `/api/prospeccao/alertas` | Leads que precisam de atenção (🔴/🟡) |
+| `GET` | `/api/prospeccao/funil` | Dados do funil por etapa + origens |
+| `GET` | `/api/prospeccao/prazos` | Tarefas com prazo próximo/vencido |
+| `POST` | `/api/prospeccao/buscar-maps` | Busca no Google Places API |
+| `POST` | `/api/prospeccao/detalhe-maps` | Telefone/website de um local |
+| `POST` | `/api/prospeccao/salvar-leads` | Salva contatos extraídos como leads |
+
+### IA SDR (público — webhook WhatsApp)
+
+| Método | Endpoint | Descrição |
+|--------|----------|-----------|
+| `POST` | `/api/ia-sdr/webhook` | Recebe msg WhatsApp → IA responde |
+| `GET` | `/api/ia-sdr/conversas` | Lista conversas ativas |
+| `GET` | `/api/ia-sdr/conversa/:clienteId` | Histórico de uma conversa |
+| `POST` | `/api/ia-sdr/toggle` | Ativar/desativar IA para um lead |
 
 ### Webhooks (públicos, sem autenticação)
 
@@ -799,24 +843,129 @@ RPC que retorna todas as métricas do dashboard em uma única chamada.
 
 ---
 
+## 🎯 Prospecção — Alertas, Funil e Extrator Maps
+
+Acessível pelo menu lateral do CRM → **Prospecção**. Possui 3 abas:
+
+### Aba: Alertas
+Monitora todos os leads e avisa quando precisam de atenção:
+
+| Situação | Nível | Regra |
+|----------|-------|-------|
+| Lead parado > 7 dias | 🔴 Urgente | Contatar ou marcar como perdido |
+| Lead parado > 3 dias | 🟡 Atenção | Fazer contato imediato |
+| Em atendimento sem atualização > 3 dias | 🟡 Atenção | Atualizar status |
+| Aguardando docs > 5 dias | 🔴 Urgente | Cobrar documentos |
+| Em análise > 15 dias | 🔴 Urgente | Verificar processo judicial |
+
+### Aba: Funil
+Visualização completa do pipeline de vendas:
+- Barras: Lead → Contato → Negociação → Cliente → Perdido
+- Leads por origem (Manual, Forms, Landing Page, WhatsApp, Maps)
+- KPIs: total, novos 7d/30d, taxa de conversão
+
+### Aba: Extrator Maps
+Busca empresas no Google Maps e salva como leads:
+1. Digita palavra-chave + cidade (ex: "contabilidade Sorocaba")
+2. Busca retorna até 20 resultados com nome, endereço, rating
+3. Clique em "Buscar" no telefone para obter contato
+4. Selecione contatos → **Salvar como Leads** ou **Exportar CSV**
+5. Leads criados automaticamente recebem tarefa de contato (prazo 2 dias)
+
+> **API:** Usa Google Places API (key: `GOOGLE_PLACES_API_KEY`).
+
+---
+
+## 🤖 IA SDR — Agente de Conversão via WhatsApp
+
+Acessível pelo menu lateral → **IA SDR**. Agente de IA que conversa automaticamente com leads.
+
+### Como funciona
+
+```
+Lead envia WhatsApp → Webhook → IA SDR (GPT-4o-mini)
+→ Gera resposta contextual → Envia via WhatsApp API
+→ Registra no histórico do CRM
+→ Quando lead quer agendar → Escala para humano + cria tarefa urgente
+```
+
+### Regras da IA
+- Conhece o modelo de negócio (blindagem via CDC, liminares, 6-12 meses)
+- Informa que a consulta custa R$ 50
+- Nunca inventa preços de outros serviços
+- Respostas curtas (máx 3-4 frases)
+- Qualifica o lead (pede nome, CPF, interesse)
+- Escala para humano quando: lead confirma interesse, pede humano, ou reclama
+
+### Escalação para humano
+Quando a IA identifica que o lead quer agendar consulta:
+1. Cria **tarefa urgente** no CRM: "Lead qualificado para consulta"
+2. **Desativa a IA** para esse lead (evita conflito)
+3. Muda status do lead para `em_atendimento`
+
+### Painel no CRM
+- Lista de conversas ativas (esquerda)
+- Histórico de mensagens estilo WhatsApp (direita)
+- Toggle ON/OFF por lead
+- Botão "Testar Resposta" para simular conversa
+
+> **APIs:** OpenAI GPT-4o-mini (`OPENAI_API_KEY`) + WhatsApp Business (`META_WHATSAPP_TOKEN`, `META_PHONE_NUMBER_ID`)
+
+---
+
+## 🌐 Landing Page de Captura
+
+Localizada em `AUTOMAÇÃO/index.html`. Design dark premium com:
+- Hero com formulário de captura (nome, telefone, CPF, e-mail, serviço)
+- Prova social animada (500+ clientes, 12 meses, 98% liminares, 5 birôs)
+- Como funciona (4 passos)
+- Serviços detalhados
+- Depoimentos
+- FAQ
+- CTA final
+
+Formulário envia dados para o CRM webhook (`/api/webhook/generic`) e opcionalmente aciona N8N.
+
+---
+
+## ⚡ Automações N8N
+
+Arquivos JSON na pasta `AUTOMAÇÃO/`. Importar no N8N da VPS.
+
+| Workflow | Arquivo | Gatilho | Função |
+|----------|---------|---------|--------|
+| Boas-vindas | `n8n_workflow_welcome.json` | Webhook (landing page) | Envia msg WhatsApp imediata |
+| Follow-up | `n8n_workflow_followup.json` | Cron (todo dia 10h) | Msgs dia 1/3/7 para leads |
+| Broadcast | `n8n_workflow_broadcast.json` | Webhook (manual) | Disparo em massa |
+
+> O follow-up **só envia para leads com `status=lead`**. Quando o status muda, o follow-up para automaticamente.
+
+---
+
 ## 🔑 Variáveis de Ambiente
 
-| Variável | Descrição | Padrão |
-|----------|-----------|--------|
-| `SUPABASE_URL` | URL do projeto Supabase | (obrigatório) |
-| `SUPABASE_ANON_KEY` | Chave anon pública do Supabase | (obrigatório) |
-| `JWT_SECRET` | Chave secreta para assinar tokens JWT | `limpanome-crm-secret-key-2026` |
-| `CRM_PASSWORD` | Senha de acesso ao CRM | `limpanome2026` |
-| `PORT` | Porta do servidor local | `3000` |
+| Variável | Descrição | Obrigatório |
+|----------|-----------|:-----------:|
+| `SUPABASE_URL` | URL do projeto Supabase | ✅ |
+| `SUPABASE_ANON_KEY` | Chave anon pública do Supabase | ✅ |
+| `JWT_SECRET` | Chave secreta para JWT | ✅ |
+| `CRM_PASSWORD` | Senha de acesso ao CRM | ⬜ (padrão: `limpanome2026`) |
+| `GOOGLE_PLACES_API_KEY` | API key Google Maps | ⬜ (extrator não funciona sem) |
+| `META_PHONE_NUMBER_ID` | ID do número WhatsApp | ⬜ (IA SDR não funciona sem) |
+| `META_WHATSAPP_TOKEN` | Token Meta WhatsApp API | ⬜ (IA SDR não funciona sem) |
+| `OPENAI_API_KEY` | API key OpenAI (GPT) | ⬜ (IA SDR não funciona sem) |
 
-### Arquivo `.env` (exemplo)
+### Arquivo `.env.local` (exemplo)
 
 ```env
 SUPABASE_URL=https://xxxxx.supabase.co
 SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIs...
 JWT_SECRET=minha-chave-secreta-muito-longa-aqui
 CRM_PASSWORD=limpanome2026
-PORT=3000
+GOOGLE_PLACES_API_KEY=AIzaSy...
+META_PHONE_NUMBER_ID=850290811509206
+META_WHATSAPP_TOKEN=EAADPOo...
+OPENAI_API_KEY=sk-...
 ```
 
 ---
@@ -910,20 +1059,37 @@ PORT=3000
 
 Checklist de tudo que precisa ser feito para o sistema funcionar:
 
-- [ ] Criar projeto no Supabase (região São Paulo)
-- [ ] Executar `supabase-schema.sql` no SQL Editor
-- [ ] Criar bucket `documentos` no Storage (público)
-- [ ] Configurar política de acesso no bucket
-- [ ] Importar repositório na Vercel
-- [ ] Adicionar 4 variáveis de ambiente na Vercel (SUPABASE_URL, SUPABASE_ANON_KEY, JWT_SECRET, CRM_PASSWORD)
-- [ ] Redeploy na Vercel após adicionar variáveis
-- [ ] Criar Google Forms com os campos corretos
-- [ ] Adicionar Apps Script com o código do webhook
-- [ ] Criar gatilho `onFormSubmit` no Apps Script
-- [ ] Testar login no CRM
-- [ ] Testar formulário (função testeManual + envio real)
-- [ ] Testar upload de documento
+### CRM Base
+- [x] Criar projeto no Supabase (região São Paulo)
+- [x] Executar `supabase-schema.sql` no SQL Editor
+- [x] Criar bucket `documentos` no Storage (público)
+- [x] Configurar política de acesso no bucket
+- [x] Importar repositório na Vercel
+- [x] Adicionar variáveis de ambiente na Vercel
+- [x] Criar Google Forms com os campos corretos
+- [x] Adicionar Apps Script com o código do webhook
+- [x] Testar login no CRM
+
+### Prospecção + IA SDR (novo)
+- [x] `routes/prospeccao.js` — alertas, funil, extrator
+- [x] `routes/ia-sdr.js` — webhook, conversas, toggle
+- [x] `lib/sdrAgent.js` — agente GPT-4o-mini
+- [x] Páginas frontend (prospeccao.js, ia-sdr.js)
+- [x] Configurar `GOOGLE_PLACES_API_KEY`
+- [x] Configurar `META_PHONE_NUMBER_ID`
+- [x] Configurar `META_WHATSAPP_TOKEN`
+- [ ] Configurar `OPENAI_API_KEY`
+- [ ] Deploy no Vercel com novas variáveis
+- [ ] Testar extrator Google Maps
+- [ ] Testar IA SDR
+
+### Landing Page + N8N
+- [x] Landing page (`AUTOMAÇÃO/index.html`)
+- [x] Workflows N8N (welcome, follow-up, broadcast)
+- [ ] Deploy landing page no Vercel
+- [ ] Importar workflows no N8N da VPS
+- [ ] Testar fluxo completo
 
 ---
 
-**Desenvolvido para AM Consultoria** | CRM Limpa Nome v2.0 | 2026
+**Desenvolvido para Amarilis Soluções** | CRM Limpa Nome v3.0 | 2026

@@ -1,0 +1,249 @@
+{
+    "name": "Limpa Nome - Boas-Vindas Automáticas",
+    "nodes": [
+        {
+            "parameters": {
+                "httpMethod": "POST",
+                "path": "limpa-nome-welcome",
+                "responseMode": "lastNode",
+                "options": {}
+            },
+            "id": "wlc-0001-0001-0001-000000000001",
+            "name": "Webhook - Novo Lead",
+            "type": "n8n-nodes-base.webhook",
+            "typeVersion": 2,
+            "position": [
+                240,
+                300
+            ],
+            "webhookId": "limpa-nome-welcome"
+        },
+        {
+            "parameters": {
+                "amount": 30,
+                "unit": "seconds"
+            },
+            "id": "wlc-0002-0002-0002-000000000002",
+            "name": "Aguardar 30s",
+            "type": "n8n-nodes-base.wait",
+            "typeVersion": 1.1,
+            "position": [
+                460,
+                300
+            ]
+        },
+        {
+            "parameters": {
+                "assignments": {
+                    "assignments": [
+                        {
+                            "id": "nome",
+                            "name": "nome",
+                            "value": "={{ $json.body?.nome || $json.nome || 'Cliente' }}",
+                            "type": "string"
+                        },
+                        {
+                            "id": "telefone",
+                            "name": "telefone",
+                            "value": "={{ ($json.body?.telefone || $json.telefone || '').replace(/\\D/g, '') }}",
+                            "type": "string"
+                        },
+                        {
+                            "id": "telefone_whatsapp",
+                            "name": "telefone_whatsapp",
+                            "value": "={{ (() => { let tel = ($json.body?.telefone || $json.telefone || '').replace(/\\D/g, ''); if (!tel.startsWith('55')) tel = '55' + tel; return tel; })() }}",
+                            "type": "string"
+                        }
+                    ]
+                }
+            },
+            "id": "wlc-0003-0003-0003-000000000003",
+            "name": "Preparar Dados",
+            "type": "n8n-nodes-base.set",
+            "typeVersion": 3.4,
+            "position": [
+                680,
+                300
+            ]
+        },
+        {
+            "parameters": {
+                "conditions": {
+                    "options": {
+                        "caseSensitive": true,
+                        "leftValue": "",
+                        "typeValidation": "strict"
+                    },
+                    "conditions": [
+                        {
+                            "id": "check-tel",
+                            "leftValue": "={{ $json.telefone }}",
+                            "rightValue": "",
+                            "operator": {
+                                "type": "string",
+                                "operation": "notEmpty"
+                            }
+                        }
+                    ],
+                    "combinator": "and"
+                }
+            },
+            "id": "wlc-0004-0004-0004-000000000004",
+            "name": "Tem Telefone?",
+            "type": "n8n-nodes-base.if",
+            "typeVersion": 2,
+            "position": [
+                900,
+                300
+            ]
+        },
+        {
+            "parameters": {
+                "url": "=https://graph.facebook.com/v19.0/SEU_PHONE_NUMBER_ID/messages",
+                "authentication": "none",
+                "method": "POST",
+                "sendHeaders": true,
+                "headerParameters": {
+                    "parameters": [
+                        {
+                            "name": "Authorization",
+                            "value": "Bearer SEU_ACCESS_TOKEN_META"
+                        },
+                        {
+                            "name": "Content-Type",
+                            "value": "application/json"
+                        }
+                    ]
+                },
+                "sendBody": true,
+                "bodyContentType": "json",
+                "jsonBody": "={\n  \"messaging_product\": \"whatsapp\",\n  \"to\": \"{{ $json.telefone_whatsapp }}\",\n  \"type\": \"text\",\n  \"text\": {\n    \"body\": \"Olá, {{ $json.nome }}! 😊\\n\\nAqui é da *Amarilis Soluções*. Recebemos seu cadastro para consulta gratuita sobre blindagem do seu nome.\\n\\nEm breve, um de nossos consultores vai entrar em contato para analisar sua situação nos birôs de crédito.\\n\\nComo funciona:\\n\\n⚖️ Blindagem via *liminar judicial* baseada no CDC\\n🛡️ Retirada de apontamentos do Serasa, SPC e Boa Vista\\n📋 Proteção de *6 a 12 meses*\\n\\nSe tiver alguma dúvida, pode responder esta mensagem!\\n\\n_Amarilis Soluções - Proteção ao Crédito_\"\n  }\n}",
+                "options": {}
+            },
+            "id": "wlc-0005-0005-0005-000000000005",
+            "name": "Enviar WhatsApp - Boas-Vindas",
+            "type": "n8n-nodes-base.httpRequest",
+            "typeVersion": 4.2,
+            "position": [
+                1120,
+                220
+            ]
+        },
+        {
+            "parameters": {
+                "values": {
+                    "string": [
+                        {
+                            "name": "status",
+                            "value": "ok_enviado"
+                        }
+                    ]
+                },
+                "options": {}
+            },
+            "id": "wlc-0006-0006-0006-000000000006",
+            "name": "Resposta OK",
+            "type": "n8n-nodes-base.set",
+            "typeVersion": 3.4,
+            "position": [
+                1340,
+                220
+            ]
+        },
+        {
+            "parameters": {
+                "values": {
+                    "string": [
+                        {
+                            "name": "status",
+                            "value": "sem_telefone"
+                        }
+                    ]
+                },
+                "options": {}
+            },
+            "id": "wlc-0007-0007-0007-000000000007",
+            "name": "Sem Telefone",
+            "type": "n8n-nodes-base.set",
+            "typeVersion": 3.4,
+            "position": [
+                1120,
+                420
+            ]
+        }
+    ],
+    "connections": {
+        "Webhook - Novo Lead": {
+            "main": [
+                [
+                    {
+                        "node": "Aguardar 30s",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Aguardar 30s": {
+            "main": [
+                [
+                    {
+                        "node": "Preparar Dados",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Preparar Dados": {
+            "main": [
+                [
+                    {
+                        "node": "Tem Telefone?",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Tem Telefone?": {
+            "main": [
+                [
+                    {
+                        "node": "Enviar WhatsApp - Boas-Vindas",
+                        "type": "main",
+                        "index": 0
+                    }
+                ],
+                [
+                    {
+                        "node": "Sem Telefone",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Enviar WhatsApp - Boas-Vindas": {
+            "main": [
+                [
+                    {
+                        "node": "Resposta OK",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        }
+    },
+    "settings": {
+        "executionOrder": "v1"
+    },
+    "tags": [
+        "limpa-nome",
+        "welcome",
+        "whatsapp"
+    ],
+    "triggerCount": 0,
+    "versionId": "1"
+}
