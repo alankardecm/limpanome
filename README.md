@@ -142,7 +142,8 @@ limpanome/
 │   ├── documentos.js         # Upload/download de PDFs
 │   ├── webhook.js            # Google Forms + WhatsApp
 │   ├── prospeccao.js         # 🎯 Alertas, funil, extrator Maps
-│   └── ia-sdr.js             # 🤖 IA SDR webhook + conversas
+│   ├── ia-sdr.js             # 🤖 IA SDR webhook + conversas
+│   └── whatsapp.js           # 📱 Disparo em massa via Meta API
 ├── public/
 │   ├── css/
 │   │   └── style.css         # Design system completo
@@ -160,8 +161,9 @@ limpanome/
 │   │       ├── tarefas.js        # Gestão de tarefas
 │   │       ├── pipeline.js       # Pipeline visual (Kanban)
 │   │       ├── precos.js         # Tabela de preços
-│   │       ├── prospeccao.js     # 🎯 Prospecção (alertas/funil/Maps)
-│   │       └── ia-sdr.js         # 🤖 Painel de conversas IA
+│   │       ├── prospeccao.js     # 🎯 Prospecção (alertas/funil/Maps + WPP)
+│   │       ├── ia-sdr.js         # 🤖 Painel de conversas IA
+│   │       └── whatsapp.js       # 📱 Disparo em massa WhatsApp
 │   └── index.html            # Página única (SPA)
 ├── AUTOMAÇÃO/                # 🌐 Landing Page + N8N Workflows
 │   ├── index.html            # Landing page de captura
@@ -514,6 +516,16 @@ Authorization: Bearer <token_jwt>
 | `GET` | `/api/ia-sdr/conversas` | Lista conversas ativas |
 | `GET` | `/api/ia-sdr/conversa/:clienteId` | Histórico de uma conversa |
 | `POST` | `/api/ia-sdr/toggle` | Ativar/desativar IA para um lead |
+
+### WhatsApp — Disparo em Massa (protegido)
+
+| Método | Endpoint | Descrição |
+|--------|----------|-----------|
+| `POST` | `/api/whatsapp/enviar-um` | Envia mensagem para 1 número (teste) |
+| `POST` | `/api/whatsapp/disparar` | Disparo em massa para leads do CRM (por `cliente_ids` ou `filtro_status`) |
+| `POST` | `/api/whatsapp/disparar-numeros` | Disparo para lista de `{nome, telefone}` — **não exige salvar no CRM** (uso: Prospecção Maps) |
+| `GET` | `/api/whatsapp/progresso/:campanhaId` | Polling de progresso de um disparo em andamento |
+| `GET` | `/api/whatsapp/historico-disparos` | Lista campanhas finalizadas |
 
 ### Webhooks (públicos, sem autenticação)
 
@@ -868,9 +880,14 @@ Visualização completa do pipeline de vendas:
 Busca empresas no Google Maps e salva como leads:
 1. Digita palavra-chave + cidade (ex: "contabilidade Sorocaba")
 2. Busca retorna até 20 resultados com nome, endereço, rating
-3. Clique em "Buscar" no telefone para obter contato
-4. Selecione contatos → **Salvar como Leads** ou **Exportar CSV**
-5. Leads criados automaticamente recebem tarefa de contato (prazo 2 dias)
+3. Clique em **📞 Buscar** no telefone de cada empresa para obter o contato
+4. Selecione os contatos desejados via checkbox
+5. **Opções na barra de ações:**
+   - **Salvar como Leads** → cria no CRM com tarefa de contato automática
+   - **📱 Disparar WPP** → abre modal para enviar WhatsApp imediatamente (sem salvar no CRM)
+   - **CSV** → exporta os resultados
+
+> **Disparo WPP na Prospecção:** Selecione empresas com telefone, clique em **Disparar WPP**, escreva a mensagem (suporte a `{{nome}}`), veja a prévia e dispare. O progresso aparece em tempo real dentro do modal. Os leads **não precisam estar salvos no CRM**.
 
 > **API:** Usa Google Places API (key: `GOOGLE_PLACES_API_KEY`).
 
@@ -910,6 +927,57 @@ Quando a IA identifica que o lead quer agendar consulta:
 - Botão "Testar Resposta" para simular conversa
 
 > **APIs:** OpenAI GPT-4o-mini (`OPENAI_API_KEY`) + WhatsApp Business (`META_WHATSAPP_TOKEN`, `META_PHONE_NUMBER_ID`)
+
+---
+
+## 📱 WhatsApp — Disparo em Massa
+
+Acessível pelo menu lateral → **WhatsApp**. Permite enviar mensagens em massa para leads usando o mesmo número da Meta já configurado.
+
+### Como usar
+
+1. Acesse **WhatsApp** no menu lateral
+2. **Filtre e selecione** os leads (por status, por busca de nome, ou "Selecionar todos")
+3. Escreva a **mensagem** — use `{{nome}}` para personalizar por lead
+4. Veja a **prévia** estilo bolha do WhatsApp antes de enviar
+5. Opcionalmente, **teste** enviando para seu próprio número
+6. Clique em **Disparar** → confirme → acompanhe o **progresso em tempo real**
+7. Consulte o **Histórico** de campanhas anteriores
+
+### Variáveis de personalização
+
+| Variável | Substituído por |
+|----------|-----------------|
+| `{{nome}}` | Primeiro nome do lead |
+| `{{telefone}}` | Telefone do lead |
+
+### Regras e limites
+
+| Configuração | Valor | Motivo |
+|--------------|-------|--------|
+| Delay padrão | **2 segundos** entre envios | Evitar bloqueio pela Meta |
+| Delay conservador | 3-5 segundos | Mais segurança |
+| Máximo recomendado | ~100 mensagens/dia | Limite da conta WhatsApp Business |
+
+> ⚠️ **Atenção Meta:** Para leads que **nunca enviaram mensagem** para o número, use Templates aprovados na Meta Business Suite. O disparo de texto livre funciona para quem já interagiu dentro de **24 horas**.
+
+### Disparo direto da Prospecção
+
+Na aba **Extrator Maps**, após buscar empresas e obter os telefones:
+1. Selecione as empresas via checkbox
+2. Clique em **📱 Disparar WPP** (botão verde na barra de ações)
+3. Modal abre com editor de mensagem + prévia + progresso
+4. **Os leads não precisam estar salvos no CRM** — o disparo é feito diretamente pelos números
+
+### Arquitetura do disparo
+
+```
+Frontend → POST /api/whatsapp/disparar (ou /disparar-numeros)
+         → Backend responde imediatamente com campanha_id
+         → Envios ocorrem em background (loop async com delay)
+         → Frontend faz polling GET /api/whatsapp/progresso/:id a cada 3s
+         → Quando finalizado, toast de conclusão
+```
 
 ---
 
@@ -1070,7 +1138,15 @@ Checklist de tudo que precisa ser feito para o sistema funcionar:
 - [x] Adicionar Apps Script com o código do webhook
 - [x] Testar login no CRM
 
-### Prospecção + IA SDR (novo)
+### WhatsApp Blast + Prospecção WPP (novo)
+- [x] `routes/whatsapp.js` — endpoints disparar, disparar-numeros, progresso, histórico
+- [x] `public/js/pages/whatsapp.js` — página de disparo em massa
+- [x] Botão **Disparar WPP** na aba Extrator Maps da Prospecção
+- [x] Menu lateral `index.html` com link WhatsApp e ícone verde
+- [x] Configurar `META_PHONE_NUMBER_ID` e `META_WHATSAPP_TOKEN` na Vercel
+- [ ] Aprovar Templates na Meta Business Suite (para cold outreach)
+
+### Prospecção + IA SDR
 - [x] `routes/prospeccao.js` — alertas, funil, extrator
 - [x] `routes/ia-sdr.js` — webhook, conversas, toggle
 - [x] `lib/sdrAgent.js` — agente GPT-4o-mini
@@ -1092,4 +1168,17 @@ Checklist de tudo que precisa ser feito para o sistema funcionar:
 
 ---
 
-**Desenvolvido para Amarilis Soluções** | CRM Limpa Nome v3.0 | 2026
+---
+
+**Desenvolvido para Amarilis Soluções** | CRM Limpa Nome v4.0 | 2026
+
+---
+
+## 📅 Changelog
+
+| Versão | Data | O que mudou |
+|--------|------|-------------|
+| **v4.0** | Mar/2026 | 📱 WhatsApp Blast (disparo em massa via Meta Cloud API), botão Disparar WPP na Prospecção, novo endpoint `/api/whatsapp` |
+| **v3.0** | Fev/2026 | 🎯 Prospecção (Alertas, Funil, Extrator Google Maps), IA SDR (GPT-4o-mini), Landing Page de captura, Automações N8N |
+| **v2.0** | Jan/2026 | 📄 Sistema de Documentos (PDF upload + comparação Antes/Depois), Pipeline Kanban, Google Forms webhook |
+| **v1.0** | Jan/2026 | 🚀 CRM base: Clientes, Dívidas, Processos, BACEN, Tarefas, Dashboard, autenticação JWT |
