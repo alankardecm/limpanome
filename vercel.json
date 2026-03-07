@@ -16,7 +16,11 @@
       "dest": "/api/index.js"
     },
     {
-      "src": "/(.*\\.(js|css|ico|png|jpg|jpeg|svg|gif|woff|woff2|ttf|eot))",
+      "src": "/formulario-rating.html",
+      "dest": "/public/formulario-rating.html"
+    },
+    {
+      "src": "/(.*\\.(js|css|ico|png|jpg|jpeg|svg|gif|woff|woff2|ttf|eot|html))",
       "dest": "/public/$1"
     },
     {
