@@ -1170,7 +1170,98 @@ Checklist de tudo que precisa ser feito para o sistema funcionar:
 
 ---
 
-**Desenvolvido para Amarilis Soluções** | CRM Limpa Nome v4.0 | 2026
+## 📊 Rating — Ficha de Cadastro do Cliente
+
+Acessível pelo menu lateral → **Clientes** → ficha do cliente → aba **Rating**.
+
+Permite coletar dados financeiros e pessoais completos do cliente via formulário enviado pelo WhatsApp.
+
+### Como funciona
+
+```
+CRM → aba Rating → botão "Enviar Formulário via WhatsApp"
+→ Cliente recebe mensagem com link personalizado
+→ Abre formulário no celular → preenche os dados → envia
+→ POST /api/rating/submit salva no Supabase
+→ Aba Rating do CRM exibe os dados automaticamente
+```
+
+### Campos do formulário
+
+**Pessoa Física**
+- Nome completo, CPF, Título de Eleitor, RG, Data de Expedição
+- Data de Nascimento, Estado Civil, E-mail
+- Telefone Celular, Telefone Residencial
+
+**Cônjuge / Companheiro(a)**
+- Nome, CPF e RG do cônjuge
+- Nome do Pai e Nome da Mãe
+
+**Endereço**
+- Logradouro, Número, CEP, Bairro, Cidade, Estado
+
+**Trabalho e Renda**
+- Empresa, Data de Admissão
+- Salário, Renda Familiar, Faturamento
+
+**Bancos e Instituições Financeiras** (até 3)
+- Nome do Banco, Número da Conta, Agência
+
+**Referências Pessoais** (até 3)
+- Nome, Celular, Grau de Relacionamento
+
+**Login e Senha** (Serasa / SPC / Gov.br)
+- Portal, Login, Senha
+
+**Documentos disponíveis** (checklist)
+- CNH ou RG, Comprovante de Renda, Comprovante de Endereço
+- Extrato Bancário, CTPS, Declaração IR
+
+### URL do formulário
+
+```
+https://limpanome-t73d.vercel.app/formulario-rating.html?id=CLIENTE_ID&nome=NOME_DO_CLIENTE
+```
+
+O nome do cliente é pré-preenchido automaticamente. O `id` identifica o cliente no banco.
+
+### API — Endpoints Rating
+
+| Método | Endpoint | Auth | Descrição |
+|--------|----------|------|-----------|
+| `POST` | `/api/rating/submit` | ❌ Público | Cliente envia o formulário |
+| `GET` | `/api/rating/:clienteId` | ✅ JWT | CRM busca o rating do cliente |
+
+### Banco de dados — `fichas_rating`
+
+Executar `supabase-schema-rating.sql` no SQL Editor do Supabase.
+
+```sql
+CREATE TABLE fichas_rating (
+  id SERIAL PRIMARY KEY,
+  cliente_id INTEGER REFERENCES clientes(id) ON DELETE CASCADE,
+  -- pessoa física, cônjuge, endereço, renda...
+  bancos JSONB DEFAULT '[]',
+  referencias JSONB DEFAULT '[]',
+  logins JSONB DEFAULT '[]',
+  documentos_checklist JSONB DEFAULT '[]',
+  preenchido_em TIMESTAMPTZ DEFAULT NOW(),
+  UNIQUE(cliente_id)
+);
+```
+
+### WhatsApp — Restrição de Janela de 24h
+
+> ⚠️ Para que o botão **Enviar Formulário via WhatsApp** funcione, o cliente deve ter enviado pelo menos **uma mensagem** para o número da Amarilis (`5519996309592`) nas últimas **24 horas**.
+>
+> **Solução para cold outreach:** Compartilhe o link abaixo para o cliente abrir uma conversa:
+> ```
+> https://wa.me/5519996309592?text=Olá!%20Gostaria%20de%20saber%20mais%20sobre%20o%20Limpa%20Nome.
+> ```
+
+---
+
+**Desenvolvido para Amarilis Soluções** | CRM Limpa Nome v5.0 | 2026
 
 ---
 
@@ -1178,6 +1269,7 @@ Checklist de tudo que precisa ser feito para o sistema funcionar:
 
 | Versão | Data | O que mudou |
 |--------|------|-------------|
+| **v5.0** | Mar/2026 | 📊 Rating (ficha cadastral via WhatsApp), formulário público mobile-first, aba Rating na ficha do cliente, endpoint público `/api/rating/submit`, tabela `fichas_rating` no Supabase |
 | **v4.0** | Mar/2026 | 📱 WhatsApp Blast (disparo em massa via Meta Cloud API), botão Disparar WPP na Prospecção, novo endpoint `/api/whatsapp` |
 | **v3.0** | Fev/2026 | 🎯 Prospecção (Alertas, Funil, Extrator Google Maps), IA SDR (GPT-4o-mini), Landing Page de captura, Automações N8N |
 | **v2.0** | Jan/2026 | 📄 Sistema de Documentos (PDF upload + comparação Antes/Depois), Pipeline Kanban, Google Forms webhook |
