@@ -1288,7 +1288,7 @@ ClienteDetalhePage.loadRating = async function () {
 ClienteDetalhePage.enviarFormularioRating = async function () {
   const c = this.cliente;
   if (!c || !c.telefone) {
-    Components.toast('Cliente sem telefone cadastrado!', 'danger');
+    App.toast('Cliente sem telefone cadastrado!', 'error');
     return;
   }
 
@@ -1316,8 +1316,8 @@ ClienteDetalhePage.enviarFormularioRating = async function () {
     const json = await res.json();
     if (!res.ok) throw new Error(json.error || 'Erro ao enviar');
 
-    Components.toast(`✅ Formulário enviado pelo WhatsApp para ${c.nome}!`, 'success');
+    App.toast(`✅ Formulário enviado pelo WhatsApp para ${c.nome}!`, 'success');
   } catch (err) {
-    Components.toast('Erro ao enviar via WhatsApp: ' + err.message, 'danger');
+    App.toast('Erro ao enviar via WhatsApp: ' + err.message, 'error');
   }
 };
