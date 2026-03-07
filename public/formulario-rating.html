@@ -1,0 +1,831 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Ficha de Rating – Limpa Nome</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet" />
+    <style>
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        :root {
+            --bg: #0d0f14;
+            --surface: #161b26;
+            --surface2: #1e2535;
+            --border: #2a3347;
+            --accent: #3b82f6;
+            --accent-light: #60a5fa;
+            --green: #22c55e;
+            --text: #e2e8f0;
+            --text-muted: #94a3b8;
+            --danger: #ef4444;
+            --radius: 12px;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            padding: 0 0 60px;
+        }
+
+        /* HEADER */
+        .header {
+            background: linear-gradient(135deg, #1e3a8a 0%, #1d4ed8 100%);
+            padding: 24px 20px;
+            text-align: center;
+        }
+
+        .header-logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }
+
+        .header-logo span {
+            color: #60a5fa;
+        }
+
+        .header-sub {
+            font-size: 0.82rem;
+            color: #bfdbfe;
+            margin-top: 4px;
+        }
+
+        /* PROGRESS */
+        .progress-bar-wrap {
+            background: var(--surface2);
+            height: 4px;
+        }
+
+        .progress-bar {
+            height: 4px;
+            background: var(--accent);
+            transition: width 0.4s ease;
+        }
+
+        /* CONTAINER */
+        .container {
+            max-width: 680px;
+            margin: 0 auto;
+            padding: 24px 16px;
+        }
+
+        /* SECTION */
+        .section {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+
+        .section-header {
+            background: var(--surface2);
+            padding: 14px 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .section-header .icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            background: rgba(59, 130, 246, 0.15);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+        }
+
+        .section-title {
+            font-weight: 600;
+            font-size: 0.92rem;
+        }
+
+        .section-body {
+            padding: 20px;
+        }
+
+        /* GRID */
+        .grid {
+            display: grid;
+            gap: 14px;
+        }
+
+        .grid-2 {
+            grid-template-columns: 1fr 1fr;
+        }
+
+        .grid-3 {
+            grid-template-columns: 1fr 1fr 1fr;
+        }
+
+        @media (max-width: 480px) {
+
+            .grid-2,
+            .grid-3 {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* FORM FIELDS */
+        .field {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .field label {
+            font-size: 0.75rem;
+            font-weight: 500;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .field input,
+        .field select {
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 10px 12px;
+            color: var(--text);
+            font-size: 0.9rem;
+            font-family: inherit;
+            transition: border-color 0.2s;
+            width: 100%;
+        }
+
+        .field input:focus,
+        .field select:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+        }
+
+        .field input::placeholder {
+            color: var(--text-muted);
+        }
+
+        .field select option {
+            background: var(--surface2);
+        }
+
+        /* TABLE ROWS (bancos / referências) */
+        .table-row {
+            display: grid;
+            gap: 10px;
+            margin-bottom: 10px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .table-row:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+
+        .row-label {
+            font-size: 0.72rem;
+            color: var(--text-muted);
+            background: var(--surface2);
+            padding: 2px 10px;
+            border-radius: 20px;
+            display: inline-block;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        /* CHECKLIST */
+        .checklist {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .check-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 12px;
+            cursor: pointer;
+            transition: border-color 0.2s;
+        }
+
+        .check-item:hover {
+            border-color: var(--accent);
+        }
+
+        .check-item input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            accent-color: var(--green);
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+
+        .check-text {
+            font-size: 0.88rem;
+        }
+
+        /* SUBMIT */
+        .submit-area {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 24px 20px;
+            text-align: center;
+        }
+
+        .btn-submit {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            background: linear-gradient(135deg, #1d4ed8, #3b82f6);
+            color: #fff;
+            font-size: 1rem;
+            font-weight: 600;
+            padding: 16px 40px;
+            border-radius: 10px;
+            border: none;
+            cursor: pointer;
+            width: 100%;
+            max-width: 360px;
+            transition: opacity 0.2s, transform 0.1s;
+            font-family: inherit;
+        }
+
+        .btn-submit:hover {
+            opacity: 0.92;
+            transform: translateY(-1px);
+        }
+
+        .btn-submit:active {
+            transform: translateY(0);
+        }
+
+        .btn-submit:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .submit-note {
+            font-size: 0.78rem;
+            color: var(--text-muted);
+            margin-top: 12px;
+        }
+
+        /* SUCCESS */
+        #success-screen {
+            display: none;
+            text-align: center;
+            padding: 60px 24px;
+        }
+
+        .success-icon {
+            font-size: 4rem;
+            margin-bottom: 20px;
+        }
+
+        .success-title {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: var(--green);
+            margin-bottom: 10px;
+        }
+
+        .success-text {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+
+        /* LOADING */
+        .spinner {
+            display: inline-block;
+            width: 18px;
+            height: 18px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-top-color: #fff;
+            border-radius: 50%;
+            animation: spin 0.7s linear infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* ALERT */
+        .alert {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            color: #fca5a5;
+            border-radius: 8px;
+            padding: 12px 16px;
+            font-size: 0.85rem;
+            margin-top: 12px;
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="header">
+        <div class="header-logo">🛡️ Limpa <span>Nome</span></div>
+        <div class="header-sub">Ficha de Cadastro para Análise de Rating</div>
+    </div>
+    <div class="progress-bar-wrap">
+        <div class="progress-bar" id="progressBar" style="width:0%"></div>
+    </div>
+
+    <div class="container">
+        <div id="success-screen">
+            <div class="success-icon">✅</div>
+            <div class="success-title">Ficha enviada com sucesso!</div>
+            <div class="success-text">Seus dados foram recebidos.<br>Nossa equipe entrará em contato em breve.</div>
+        </div>
+
+        <form id="ratingForm" autocomplete="off">
+            <!-- ============ PESSOA FÍSICA ============ -->
+            <div class="section">
+                <div class="section-header">
+                    <div class="icon">👤</div>
+                    <div class="section-title">Pessoa Física</div>
+                </div>
+                <div class="section-body grid">
+                    <div class="field">
+                        <label>Nome Completo *</label>
+                        <input type="text" name="nome_completo" id="nome_completo" required
+                            placeholder="Nome completo" />
+                    </div>
+                    <div class="grid grid-2">
+                        <div class="field"><label>CPF *</label><input type="text" name="cpf" id="cpf" required
+                                placeholder="000.000.000-00" maxlength="14" /></div>
+                        <div class="field"><label>Título de Eleitor</label><input type="text" name="titulo_eleitor"
+                                placeholder="Número do título" /></div>
+                    </div>
+                    <div class="grid grid-3">
+                        <div class="field"><label>RG</label><input type="text" name="rg" placeholder="RG" /></div>
+                        <div class="field"><label>Data de Expedição</label><input type="date" name="data_expedicao" />
+                        </div>
+                        <div class="field"><label>Data de Nascimento</label><input type="date" name="data_nascimento" />
+                        </div>
+                    </div>
+                    <div class="grid grid-2">
+                        <div class="field">
+                            <label>Estado Civil</label>
+                            <select name="estado_civil">
+                                <option value="">Selecione</option>
+                                <option>Solteiro(a)</option>
+                                <option>Casado(a)</option>
+                                <option>Divorciado(a)</option>
+                                <option>Viúvo(a)</option>
+                                <option>União Estável</option>
+                            </select>
+                        </div>
+                        <div class="field"><label>E-mail</label><input type="email" name="email"
+                                placeholder="seu@email.com" /></div>
+                    </div>
+                    <div class="grid grid-2">
+                        <div class="field"><label>Telefone Celular</label><input type="tel" name="telefone_celular"
+                                placeholder="(00) 00000-0000" /></div>
+                        <div class="field"><label>Telefone Residencial</label><input type="tel"
+                                name="telefone_residencial" placeholder="(00) 0000-0000" /></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ============ CÔNJUGE ============ -->
+            <div class="section">
+                <div class="section-header">
+                    <div class="icon">💑</div>
+                    <div class="section-title">Cônjuge / Companheiro(a)</div>
+                </div>
+                <div class="section-body grid">
+                    <div class="field"><label>Nome do Cônjuge</label><input type="text" name="conjuge_nome"
+                            placeholder="Nome completo" /></div>
+                    <div class="grid grid-2">
+                        <div class="field"><label>CPF do Cônjuge</label><input type="text" name="conjuge_cpf"
+                                placeholder="000.000.000-00" maxlength="14" /></div>
+                        <div class="field"><label>RG do Cônjuge</label><input type="text" name="conjuge_rg"
+                                placeholder="RG" /></div>
+                    </div>
+                    <div class="grid grid-2">
+                        <div class="field"><label>Nome do Pai</label><input type="text" name="nome_pai"
+                                placeholder="Nome do pai" /></div>
+                        <div class="field"><label>Nome da Mãe</label><input type="text" name="nome_mae"
+                                placeholder="Nome da mãe" /></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ============ ENDEREÇO ============ -->
+            <div class="section">
+                <div class="section-header">
+                    <div class="icon">🏠</div>
+                    <div class="section-title">Endereço</div>
+                </div>
+                <div class="section-body grid">
+                    <div class="grid" style="grid-template-columns: 1fr 80px;">
+                        <div class="field"><label>Endereço</label><input type="text" name="endereco"
+                                placeholder="Rua, Avenida..." /></div>
+                        <div class="field"><label>N°</label><input type="text" name="numero" placeholder="N°" /></div>
+                    </div>
+                    <div class="grid grid-2">
+                        <div class="field"><label>CEP</label><input type="text" name="cep" placeholder="00000-000"
+                                maxlength="9" /></div>
+                        <div class="field"><label>Bairro</label><input type="text" name="bairro" placeholder="Bairro" />
+                        </div>
+                    </div>
+                    <div class="grid grid-2">
+                        <div class="field"><label>Cidade</label><input type="text" name="cidade" placeholder="Cidade" />
+                        </div>
+                        <div class="field">
+                            <label>Estado</label>
+                            <select name="estado">
+                                <option value="">UF</option>
+                                <option>AC</option>
+                                <option>AL</option>
+                                <option>AP</option>
+                                <option>AM</option>
+                                <option>BA</option>
+                                <option>CE</option>
+                                <option>DF</option>
+                                <option>ES</option>
+                                <option>GO</option>
+                                <option>MA</option>
+                                <option>MT</option>
+                                <option>MS</option>
+                                <option>MG</option>
+                                <option>PA</option>
+                                <option>PB</option>
+                                <option>PR</option>
+                                <option>PE</option>
+                                <option>PI</option>
+                                <option>RJ</option>
+                                <option>RN</option>
+                                <option>RS</option>
+                                <option>RO</option>
+                                <option>RR</option>
+                                <option>SC</option>
+                                <option selected>SP</option>
+                                <option>SE</option>
+                                <option>TO</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ============ RENDA / TRABALHO ============ -->
+            <div class="section">
+                <div class="section-header">
+                    <div class="icon">💼</div>
+                    <div class="section-title">Trabalho e Renda</div>
+                </div>
+                <div class="section-body grid">
+                    <div class="grid grid-2">
+                        <div class="field"><label>Empresa / Empregador</label><input type="text" name="empresa"
+                                placeholder="Nome da empresa" /></div>
+                        <div class="field"><label>Data de Admissão</label><input type="date" name="data_admissao" />
+                        </div>
+                    </div>
+                    <div class="grid grid-3">
+                        <div class="field"><label>Salário (R$)</label><input type="number" name="salario"
+                                placeholder="0,00" min="0" step="0.01" /></div>
+                        <div class="field"><label>Renda Familiar (R$)</label><input type="number" name="renda_familiar"
+                                placeholder="0,00" min="0" step="0.01" /></div>
+                        <div class="field"><label>Faturamento (R$)</label><input type="number" name="faturamento"
+                                placeholder="0,00" min="0" step="0.01" /></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ============ BANCOS ============ -->
+            <div class="section">
+                <div class="section-header">
+                    <div class="icon">🏦</div>
+                    <div class="section-title">Bancos e Instituições Financeiras</div>
+                </div>
+                <div class="section-body" id="bancosContainer">
+                    <div class="table-row grid-3 grid" id="banco-row-0">
+                        <span class="row-label">1</span>
+                        <div class="field"><label>Nome do Banco</label><input type="text" name="banco_nome_0"
+                                placeholder="Ex: Itaú, Bradesco..." /></div>
+                        <div class="field"><label>N° da Conta</label><input type="text" name="banco_conta_0"
+                                placeholder="Conta" /></div>
+                        <div class="field"><label>Agência</label><input type="text" name="banco_agencia_0"
+                                placeholder="Agência" /></div>
+                    </div>
+                    <div class="table-row grid-3 grid" id="banco-row-1">
+                        <span class="row-label">2</span>
+                        <div class="field"><label>Nome do Banco</label><input type="text" name="banco_nome_1"
+                                placeholder="Ex: Nubank, C6..." /></div>
+                        <div class="field"><label>N° da Conta</label><input type="text" name="banco_conta_1"
+                                placeholder="Conta" /></div>
+                        <div class="field"><label>Agência</label><input type="text" name="banco_agencia_1"
+                                placeholder="Agência" /></div>
+                    </div>
+                    <div class="table-row grid-3 grid" id="banco-row-2">
+                        <span class="row-label">3</span>
+                        <div class="field"><label>Nome do Banco</label><input type="text" name="banco_nome_2"
+                                placeholder="Outro banco..." /></div>
+                        <div class="field"><label>N° da Conta</label><input type="text" name="banco_conta_2"
+                                placeholder="Conta" /></div>
+                        <div class="field"><label>Agência</label><input type="text" name="banco_agencia_2"
+                                placeholder="Agência" /></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ============ REFERÊNCIAS ============ -->
+            <div class="section">
+                <div class="section-header">
+                    <div class="icon">👥</div>
+                    <div class="section-title">Referências Pessoais</div>
+                </div>
+                <div class="section-body">
+                    <div class="table-row grid-3 grid">
+                        <span class="row-label">1</span>
+                        <div class="field"><label>Nome</label><input type="text" name="ref_nome_0"
+                                placeholder="Nome completo" /></div>
+                        <div class="field"><label>Celular</label><input type="tel" name="ref_cel_0"
+                                placeholder="(00) 00000-0000" /></div>
+                        <div class="field"><label>Grau de Relacionamento</label><input type="text" name="ref_grau_0"
+                                placeholder="Ex: Amigo, Familiar..." /></div>
+                    </div>
+                    <div class="table-row grid-3 grid">
+                        <span class="row-label">2</span>
+                        <div class="field"><label>Nome</label><input type="text" name="ref_nome_1"
+                                placeholder="Nome completo" /></div>
+                        <div class="field"><label>Celular</label><input type="tel" name="ref_cel_1"
+                                placeholder="(00) 00000-0000" /></div>
+                        <div class="field"><label>Grau de Relacionamento</label><input type="text" name="ref_grau_1"
+                                placeholder="Ex: Vizinho, Colega..." /></div>
+                    </div>
+                    <div class="table-row grid-3 grid">
+                        <span class="row-label">3</span>
+                        <div class="field"><label>Nome</label><input type="text" name="ref_nome_2"
+                                placeholder="Nome completo" /></div>
+                        <div class="field"><label>Celular</label><input type="tel" name="ref_cel_2"
+                                placeholder="(00) 00000-0000" /></div>
+                        <div class="field"><label>Grau de Relacionamento</label><input type="text" name="ref_grau_2"
+                                placeholder="Ex: Patrão, Parente..." /></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ============ LOGIN E SENHA ============ -->
+            <div class="section">
+                <div class="section-header">
+                    <div class="icon">🔐</div>
+                    <div class="section-title">Login e Senha (Serasa / SPC / Gov.br)</div>
+                </div>
+                <div class="section-body">
+                    <div class="table-row grid-3 grid">
+                        <span class="row-label">1</span>
+                        <div class="field"><label>Portal / Site</label><input type="text" name="login_nome_0"
+                                placeholder="Ex: Serasa" /></div>
+                        <div class="field"><label>Login / E-mail</label><input type="text" name="login_user_0"
+                                placeholder="usuario@email.com" /></div>
+                        <div class="field"><label>Senha</label><input type="text" name="login_senha_0"
+                                placeholder="Senha de acesso" /></div>
+                    </div>
+                    <div class="table-row grid-3 grid">
+                        <span class="row-label">2</span>
+                        <div class="field"><label>Portal / Site</label><input type="text" name="login_nome_1"
+                                placeholder="Ex: SPC Brasil" /></div>
+                        <div class="field"><label>Login / E-mail</label><input type="text" name="login_user_1"
+                                placeholder="usuario@email.com" /></div>
+                        <div class="field"><label>Senha</label><input type="text" name="login_senha_1"
+                                placeholder="Senha de acesso" /></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ============ DOCUMENTOS ============ -->
+            <div class="section">
+                <div class="section-header">
+                    <div class="icon">📎</div>
+                    <div class="section-title">Documentos para Enviar</div>
+                </div>
+                <div class="section-body">
+                    <p style="font-size:0.82rem;color:var(--text-muted);margin-bottom:14px;">Marque os documentos que
+                        você <strong>já tem disponíveis</strong> para enviar:</p>
+                    <div class="checklist">
+                        <label class="check-item"><input type="checkbox" name="doc_cnh" value="CNH ou RG" /><span
+                                class="check-text">📄 CNH ou RG</span></label>
+                        <label class="check-item"><input type="checkbox" name="doc_comprovante_renda"
+                                value="Comprovante de Renda" /><span class="check-text">💰 Comprovante de
+                                Renda</span></label>
+                        <label class="check-item"><input type="checkbox" name="doc_comprovante_end"
+                                value="Comprovante de Endereço" /><span class="check-text">🏠 Comprovante de
+                                Endereço</span></label>
+                        <label class="check-item"><input type="checkbox" name="doc_extrato"
+                                value="Extrato Bancário" /><span class="check-text">🏦 Extrato Bancário</span></label>
+                        <label class="check-item"><input type="checkbox" name="doc_ctps"
+                                value="Carteira de Trabalho" /><span class="check-text">📋 Carteira de Trabalho
+                                (CTPS)</span></label>
+                        <label class="check-item"><input type="checkbox" name="doc_imposto"
+                                value="Declaração do IR" /><span class="check-text">📊 Declaração do Imposto de
+                                Renda</span></label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ============ ENVIO ============ -->
+            <div class="submit-area">
+                <button type="submit" class="btn-submit" id="submitBtn">
+                    <span>Enviar Ficha de Cadastro</span>
+                    <span>📤</span>
+                </button>
+                <div class="alert" id="errorAlert"></div>
+                <p class="submit-note">🔒 Seus dados são protegidos e utilizados apenas para análise de rating.</p>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        // ── Parâmetros da URL ──────────────────────────────────────
+        const params = new URLSearchParams(window.location.search);
+        const clienteId = params.get('id');
+        const clienteNome = params.get('nome');
+
+        // Pré-preenche o nome
+        if (clienteNome) {
+            document.getElementById('nome_completo').value = decodeURIComponent(clienteNome);
+        }
+
+        // ── Progresso ─────────────────────────────────────────────
+        const form = document.getElementById('ratingForm');
+        const allInputs = () => form.querySelectorAll('input, select');
+        const progressBar = document.getElementById('progressBar');
+
+        function updateProgress() {
+            const inputs = allInputs();
+            let filled = 0;
+            inputs.forEach(inp => {
+                if (inp.type === 'checkbox' && inp.checked) filled++;
+                else if (inp.type !== 'checkbox' && inp.value.trim()) filled++;
+            });
+            const pct = Math.min((filled / inputs.length) * 100, 100);
+            progressBar.style.width = pct.toFixed(0) + '%';
+        }
+        form.addEventListener('input', updateProgress);
+        form.addEventListener('change', updateProgress);
+        updateProgress();
+
+        // ── Máscara CPF ───────────────────────────────────────────
+        function maskCPF(el) {
+            el.addEventListener('input', function () {
+                let v = this.value.replace(/\D/g, '').slice(0, 11);
+                if (v.length > 9) v = v.replace(/(\d{3})(\d{3})(\d{3})(\d{1,2})/, '$1.$2.$3-$4');
+                else if (v.length > 6) v = v.replace(/(\d{3})(\d{3})(\d{1,3})/, '$1.$2.$3');
+                else if (v.length > 3) v = v.replace(/(\d{3})(\d{1,3})/, '$1.$2');
+                this.value = v;
+            });
+        }
+        maskCPF(document.querySelector('[name="cpf"]'));
+        maskCPF(document.querySelector('[name="conjuge_cpf"]'));
+
+        // ── Máscara CEP ───────────────────────────────────────────
+        document.querySelector('[name="cep"]').addEventListener('input', function () {
+            let v = this.value.replace(/\D/g, '').slice(0, 8);
+            if (v.length > 5) v = v.replace(/(\d{5})(\d{1,3})/, '$1-$2');
+            this.value = v;
+        });
+
+        // ── Submit ────────────────────────────────────────────────
+        form.addEventListener('submit', async function (e) {
+            e.preventDefault();
+
+            const btn = document.getElementById('submitBtn');
+            const errorAlert = document.getElementById('errorAlert');
+            errorAlert.style.display = 'none';
+
+            if (!clienteId) {
+                errorAlert.textContent = 'Link inválido. Solicite um novo link pelo WhatsApp.';
+                errorAlert.style.display = 'block';
+                return;
+            }
+
+            // Monta payload
+            const fd = new FormData(form);
+            const data = Object.fromEntries(fd.entries());
+
+            // Bancos
+            const bancos = [];
+            for (let i = 0; i < 3; i++) {
+                const nome = data[`banco_nome_${i}`]?.trim();
+                if (nome) bancos.push({ nome_banco: nome, numero_conta: data[`banco_conta_${i}`] || '', agencia: data[`banco_agencia_${i}`] || '' });
+            }
+
+            // Referências
+            const referencias = [];
+            for (let i = 0; i < 3; i++) {
+                const nome = data[`ref_nome_${i}`]?.trim();
+                if (nome) referencias.push({ nome, celular: data[`ref_cel_${i}`] || '', grau_relacionamento: data[`ref_grau_${i}`] || '' });
+            }
+
+            // Logins
+            const logins = [];
+            for (let i = 0; i < 2; i++) {
+                const nome = data[`login_nome_${i}`]?.trim();
+                if (nome) logins.push({ nome, login: data[`login_user_${i}`] || '', senha: data[`login_senha_${i}`] || '' });
+            }
+
+            // Checklist documentos
+            const documentos_checklist = [];
+            form.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+                if (cb.checked) documentos_checklist.push({ nome: cb.value, entregue: true });
+            });
+
+            const payload = {
+                cliente_id: parseInt(clienteId),
+                titulo_eleitor: data.titulo_eleitor,
+                rg: data.rg,
+                data_expedicao: data.data_expedicao || null,
+                estado_civil: data.estado_civil,
+                conjuge_nome: data.conjuge_nome,
+                conjuge_cpf: data.conjuge_cpf,
+                conjuge_rg: data.conjuge_rg,
+                nome_pai: data.nome_pai,
+                nome_mae: data.nome_mae,
+                endereco: data.endereco,
+                numero: data.numero,
+                cep: data.cep,
+                bairro: data.bairro,
+                cidade: data.cidade,
+                estado: data.estado,
+                telefone_residencial: data.telefone_residencial,
+                empresa: data.empresa,
+                data_admissao: data.data_admissao || null,
+                salario: parseFloat(data.salario) || null,
+                renda_familiar: parseFloat(data.renda_familiar) || null,
+                faturamento: parseFloat(data.faturamento) || null,
+                bancos,
+                referencias,
+                logins,
+                documentos_checklist
+            };
+
+            // Loading
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner"></span> Enviando...';
+
+            try {
+                const API = window.location.hostname === 'localhost'
+                    ? 'http://localhost:3000'
+                    : 'https://limpanome-t73d.vercel.app';
+
+                const res = await fetch(`${API}/api/rating/submit`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const json = await res.json();
+                if (!res.ok) throw new Error(json.error || 'Erro ao enviar');
+
+                // Sucesso
+                document.querySelector('.container').innerHTML = `
+        <div id="success-screen" style="display:block">
+          <div class="success-icon">✅</div>
+          <div class="success-title">Ficha enviada com sucesso!</div>
+          <div class="success-text">
+            Obrigado, ${clienteNome ? decodeURIComponent(clienteNome) : 'cliente'}!<br>
+            Seus dados foram recebidos e nossa equipe entrará em contato em breve.
+          </div>
+        </div>`;
+
+            } catch (err) {
+                errorAlert.textContent = '❌ ' + (err.message || 'Erro ao enviar. Tente novamente.');
+                errorAlert.style.display = 'block';
+                btn.disabled = false;
+                btn.innerHTML = '<span>Enviar Ficha de Cadastro</span><span>📤</span>';
+            }
+        });
+    </script>
+</body>
+
+</html>

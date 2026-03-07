@@ -15,6 +15,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/webhook', require('./routes/webhook'));
 app.use('/api/ia-sdr', require('./routes/ia-sdr')); // IA SDR webhook é público
+app.use('/api/rating', require('./routes/rating')); // Rating: POST /submit é público
 
 // Health check (público)
 app.get('/api/health', (req, res) => {
@@ -36,6 +37,7 @@ app.use('/api/documentos', require('./routes/documentos'));
 app.use('/api/precos', require('./routes/precos'));
 app.use('/api/prospeccao', require('./routes/prospeccao'));
 app.use('/api/whatsapp', require('./routes/whatsapp'));
+// Nota: /api/rating já registrado acima (público)
 
 
 // Error handler global

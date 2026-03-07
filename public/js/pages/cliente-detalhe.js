@@ -76,8 +76,11 @@ const ClienteDetalhePage = {
           <i class="fas fa-tasks"></i> Tarefas (${c.tarefas?.length || 0})
         </button>
         <button class="detail-tab" data-tab="documentos" onclick="ClienteDetalhePage.setActiveTab('documentos')">
-          <i class="fas fa-file-pdf"></i> Documentos
-        </button>
+        <i class="fas fa-file-pdf"></i> Documentos
+      </button>
+      <button class="detail-tab" data-tab="rating" onclick="ClienteDetalhePage.setActiveTab('rating')">
+        <i class="fas fa-chart-bar"></i> Rating
+      </button>
       </div>
 
       <!-- Tab Contents -->
@@ -89,7 +92,8 @@ const ClienteDetalhePage = {
       <div id="tabHistorico" class="tab-content">${this.buildTabHistorico()}</div>
       <div id="tabTarefas" class="tab-content">${this.buildTabTarefas()}</div>
       <div id="tabDocumentos" class="tab-content">${this.buildTabDocumentos()}</div>
-    `;
+    <div id="tabRating" class="tab-content"><div style="padding:2rem;text-align:center;color:var(--text-light)">Carregando ficha de rating...</div></div>
+  `;
   },
 
   setActiveTab(tab) {
@@ -102,6 +106,8 @@ const ClienteDetalhePage = {
 
     // Carregar documentos ao abrir a aba
     if (tab === 'documentos') this.loadDocumentos();
+    // Carregar rating ao abrir a aba
+    if (tab === 'rating') this.loadRating();
   },
 
   buildTabGeral() {
@@ -254,9 +260,9 @@ const ClienteDetalhePage = {
             </thead>
             <tbody>
               ${processos.map(p => {
-                let bureaus = [];
-                try { bureaus = JSON.parse(p.bureaus_alvo || '[]'); } catch(e) {}
-                return `
+      let bureaus = [];
+      try { bureaus = JSON.parse(p.bureaus_alvo || '[]'); } catch (e) { }
+      return `
                   <tr>
                     <td style="font-family:monospace;font-weight:600">${Utils.escapeHtml(p.numero_processo || 'S/N')}</td>
                     <td>${p.tipo || '-'}</td>
@@ -280,7 +286,7 @@ const ClienteDetalhePage = {
                     </td>
                   </tr>
                 `;
-              }).join('')}
+    }).join('')}
             </tbody>
           </table>
         </div>
@@ -541,12 +547,12 @@ const ClienteDetalhePage = {
         <div class="form-group"><label>Bureau</label>
           <select id="mdBureau">
             <option value="">Selecione</option>
-            ${['serasa','spc','boa_vista','bacen','outro'].map(b => `<option value="${b}" ${divida.bureau === b ? 'selected' : ''}>${Utils.bureauLabels[b]}</option>`).join('')}
+            ${['serasa', 'spc', 'boa_vista', 'bacen', 'outro'].map(b => `<option value="${b}" ${divida.bureau === b ? 'selected' : ''}>${Utils.bureauLabels[b]}</option>`).join('')}
           </select>
         </div>
         <div class="form-group"><label>Status</label>
           <select id="mdStatus">
-            ${['ativa','liminar_ativa','baixada','negociando'].map(s => `<option value="${s}" ${divida.status === s ? 'selected' : ''}>${s}</option>`).join('')}
+            ${['ativa', 'liminar_ativa', 'baixada', 'negociando'].map(s => `<option value="${s}" ${divida.status === s ? 'selected' : ''}>${s}</option>`).join('')}
           </select>
         </div>
         <div class="form-group"><label>Valor Original</label><input id="mdValor" type="number" step="0.01" value="${divida.valor_original || ''}"></div>
@@ -597,7 +603,7 @@ const ClienteDetalhePage = {
         <div class="form-group"><label>Comarca</label><input id="mpComarca"></div>
         <div class="form-group"><label>Status</label>
           <select id="mpStatus">
-            ${Object.entries(Utils.processoStatusLabels).map(([k,v]) => `<option value="${k}">${v}</option>`).join('')}
+            ${Object.entries(Utils.processoStatusLabels).map(([k, v]) => `<option value="${k}">${v}</option>`).join('')}
           </select>
         </div>
         <div class="form-group"><label>Data Protocolo</label><input id="mpDataProt" type="date"></div>
@@ -609,7 +615,7 @@ const ClienteDetalhePage = {
       <div class="form-section">
         <h4>Bureaus Alvo</h4>
         <div style="display:flex;gap:12px;flex-wrap:wrap;">
-          ${['serasa','spc','boa_vista','bacen'].map(b => `
+          ${['serasa', 'spc', 'boa_vista', 'bacen'].map(b => `
             <label style="display:flex;align-items:center;gap:6px;cursor:pointer;">
               <input type="checkbox" class="mpBureau" value="${b}"> ${Utils.bureauLabels[b]}
             </label>
@@ -657,14 +663,14 @@ const ClienteDetalhePage = {
     const proc = this.cliente.processos.find(p => p.id === id);
     if (!proc) return;
     let bureaus = [];
-    try { bureaus = JSON.parse(proc.bureaus_alvo || '[]'); } catch(e) {}
+    try { bureaus = JSON.parse(proc.bureaus_alvo || '[]'); } catch (e) { }
 
     App.openModal('Editar Processo', `
       <div class="form-grid">
         <div class="form-group"><label>Nº Processo</label><input id="mpNumero" value="${Utils.escapeHtml(proc.numero_processo || '')}"></div>
         <div class="form-group"><label>Status</label>
           <select id="mpStatus">
-            ${Object.entries(Utils.processoStatusLabels).map(([k,v]) => `<option value="${k}" ${proc.status === k ? 'selected' : ''}>${v}</option>`).join('')}
+            ${Object.entries(Utils.processoStatusLabels).map(([k, v]) => `<option value="${k}" ${proc.status === k ? 'selected' : ''}>${v}</option>`).join('')}
           </select>
         </div>
         <div class="form-group"><label>Advogado</label><input id="mpAdvogado" value="${Utils.escapeHtml(proc.advogado || '')}"></div>
@@ -677,7 +683,7 @@ const ClienteDetalhePage = {
       <div class="form-section">
         <h4>Bureaus Alvo</h4>
         <div style="display:flex;gap:12px;flex-wrap:wrap;">
-          ${['serasa','spc','boa_vista','bacen'].map(b => `
+          ${['serasa', 'spc', 'boa_vista', 'bacen'].map(b => `
             <label style="display:flex;align-items:center;gap:6px;cursor:pointer;">
               <input type="checkbox" class="mpBureau" value="${b}" ${bureaus.includes(b) ? 'checked' : ''}> ${Utils.bureauLabels[b]}
             </label>
@@ -1148,4 +1154,170 @@ const ClienteDetalhePage = {
     document.getElementById('docCompareDepois').innerHTML = renderDocs(depois);
     document.getElementById('docCompareModal').style.display = 'flex';
   },
+};
+
+// =============================================
+// TAB: RATING
+// =============================================
+ClienteDetalhePage.loadRating = async function () {
+  const tab = document.getElementById('tabRating');
+  if (!tab) return;
+  const c = this.cliente;
+  const token = localStorage.getItem('token');
+
+  try {
+    const res = await fetch(`/api/rating/${c.id}`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    const json = await res.json();
+    const r = json.data;
+
+    if (!r) {
+      // Ainda não preenchido
+      tab.innerHTML = `
+        <div class="card">
+          <div class="card-header"><h3><i class="fas fa-chart-bar"></i> Ficha de Rating</h3></div>
+          <div class="card-body" style="text-align:center; padding: 3rem 2rem;">
+            <div style="font-size:3rem;margin-bottom:1rem;">📋</div>
+            <h3 style="margin-bottom:0.5rem;">Ficha ainda não preenchida</h3>
+            <p style="color:var(--text-light);margin-bottom:2rem;">Envie o formulário para o cliente preencher pelo celular.</p>
+            <button class="btn btn-primary" onclick="ClienteDetalhePage.enviarFormularioRating()">
+              <i class="fab fa-whatsapp"></i> Enviar Formulário via WhatsApp
+            </button>
+          </div>
+        </div>`;
+      return;
+    }
+
+    // Exibe os dados preenchidos
+    const fmt = (v) => v || '<span style="color:var(--text-light)">–</span>';
+    const fmtMoney = (v) => v ? 'R$ ' + parseFloat(v).toLocaleString('pt-BR', { minimumFractionDigits: 2 }) : '<span style="color:var(--text-light)">–</span>';
+    const fmtDate = (v) => v ? new Date(v + 'T12:00:00').toLocaleDateString('pt-BR') : '<span style="color:var(--text-light)">–</span>';
+
+    const bancos = (r.bancos || []).map((b, i) => `
+      <tr><td>${i + 1}</td><td>${b.nome_banco || '–'}</td><td>${b.numero_conta || '–'}</td><td>${b.agencia || '–'}</td></tr>`).join('');
+
+    const refs = (r.referencias || []).map((rf, i) => `
+      <tr><td>${i + 1}</td><td>${rf.nome || '–'}</td><td>${rf.celular || '–'}</td><td>${rf.grau_relacionamento || '–'}</td></tr>`).join('');
+
+    const logins = (r.logins || []).map((l, i) => `
+      <tr><td>${i + 1}</td><td>${l.nome || '–'}</td><td>${l.login || '–'}</td><td>${l.senha || '–'}</td></tr>`).join('');
+
+    const docs = (r.documentos_checklist || []).map(d => `<span style="background:rgba(34,197,94,0.15);color:#22c55e;padding:4px 10px;border-radius:20px;font-size:0.8rem;margin:4px;display:inline-block;">✅ ${d.nome}</span>`).join('');
+
+    const preenchidoEm = r.preenchido_em ? new Date(r.preenchido_em).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '';
+
+    tab.innerHTML = `
+      <div class="card">
+        <div class="card-header" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
+          <h3><i class="fas fa-chart-bar"></i> Ficha de Rating</h3>
+          <div style="display:flex;gap:8px;align-items:center;">
+            ${preenchidoEm ? `<span style="font-size:0.78rem;color:var(--text-light)">Preenchido em ${preenchidoEm}</span>` : ''}
+            <button class="btn btn-outline btn-sm" onclick="ClienteDetalhePage.enviarFormularioRating()">
+              <i class="fab fa-whatsapp"></i> Reenviar Formulário
+            </button>
+          </div>
+        </div>
+        <div class="card-body">
+
+          <h4 style="margin-bottom:1rem;color:var(--primary);"><i class="fas fa-user"></i> Pessoa Física</h4>
+          <div class="info-grid">
+            ${this.infoField('RG', fmt(r.rg))}
+            ${this.infoField('Título de Eleitor', fmt(r.titulo_eleitor))}
+            ${this.infoField('Data de Expedição', fmtDate(r.data_expedicao))}
+            ${this.infoField('Estado Civil', fmt(r.estado_civil))}
+            ${this.infoField('Telefone Residencial', fmt(r.telefone_residencial))}
+          </div>
+
+          <h4 style="margin:1.5rem 0 1rem;color:var(--primary);"><i class="fas fa-heart"></i> Cônjuge</h4>
+          <div class="info-grid">
+            ${this.infoField('Nome do Cônjuge', fmt(r.conjuge_nome))}
+            ${this.infoField('CPF do Cônjuge', fmt(r.conjuge_cpf))}
+            ${this.infoField('RG do Cônjuge', fmt(r.conjuge_rg))}
+            ${this.infoField('Nome do Pai', fmt(r.nome_pai))}
+            ${this.infoField('Nome da Mãe', fmt(r.nome_mae))}
+          </div>
+
+          <h4 style="margin:1.5rem 0 1rem;color:var(--primary);"><i class="fas fa-home"></i> Endereço</h4>
+          <div class="info-grid">
+            ${this.infoField('Endereço', r.endereco ? `${r.endereco}, ${r.numero || 's/n'}` : '–')}
+            ${this.infoField('CEP', fmt(r.cep))}
+            ${this.infoField('Bairro', fmt(r.bairro))}
+            ${this.infoField('Cidade / Estado', r.cidade ? `${r.cidade} / ${r.estado || ''}` : '–')}
+          </div>
+
+          <h4 style="margin:1.5rem 0 1rem;color:var(--primary);"><i class="fas fa-briefcase"></i> Trabalho e Renda</h4>
+          <div class="info-grid">
+            ${this.infoField('Empresa', fmt(r.empresa))}
+            ${this.infoField('Data de Admissão', fmtDate(r.data_admissao))}
+            ${this.infoField('Salário', fmtMoney(r.salario))}
+            ${this.infoField('Renda Familiar', fmtMoney(r.renda_familiar))}
+            ${this.infoField('Faturamento', fmtMoney(r.faturamento))}
+          </div>
+
+          ${bancos ? `
+          <h4 style="margin:1.5rem 0 1rem;color:var(--primary);"><i class="fas fa-university"></i> Bancos</h4>
+          <div style="overflow-x:auto;">
+            <table class="table"><thead><tr><th>#</th><th>Banco</th><th>Conta</th><th>Agência</th></tr></thead><tbody>${bancos}</tbody></table>
+          </div>` : ''}
+
+          ${refs ? `
+          <h4 style="margin:1.5rem 0 1rem;color:var(--primary);"><i class="fas fa-users"></i> Referências Pessoais</h4>
+          <div style="overflow-x:auto;">
+            <table class="table"><thead><tr><th>#</th><th>Nome</th><th>Celular</th><th>Grau de Relacionamento</th></tr></thead><tbody>${refs}</tbody></table>
+          </div>` : ''}
+
+          ${logins ? `
+          <h4 style="margin:1.5rem 0 1rem;color:var(--primary);"><i class="fas fa-lock"></i> Logins</h4>
+          <div style="overflow-x:auto;">
+            <table class="table"><thead><tr><th>#</th><th>Portal</th><th>Login</th><th>Senha</th></tr></thead><tbody>${logins}</tbody></table>
+          </div>` : ''}
+
+          ${docs ? `
+          <h4 style="margin:1.5rem 0 1rem;color:var(--primary);"><i class="fas fa-paperclip"></i> Documentos Disponíveis</h4>
+          <div>${docs}</div>` : ''}
+
+        </div>
+      </div>`;
+  } catch (err) {
+    console.error('Erro ao carregar rating:', err);
+    tab.innerHTML = `<div class="card"><div class="card-body" style="text-align:center;color:var(--danger);">Erro ao carregar ficha de rating.</div></div>`;
+  }
+};
+
+ClienteDetalhePage.enviarFormularioRating = async function () {
+  const c = this.cliente;
+  if (!c || !c.telefone) {
+    Components.toast('Cliente sem telefone cadastrado!', 'danger');
+    return;
+  }
+
+  const token = localStorage.getItem('token');
+  const BASE = window.location.hostname === 'localhost'
+    ? 'http://localhost:3000'
+    : 'https://limpanome-t73d.vercel.app';
+
+  const nomeEnc = encodeURIComponent(c.nome);
+  const link = `${BASE}/formulario-rating.html?id=${c.id}&nome=${nomeEnc}`;
+
+  const primeiroNome = c.nome.split(' ')[0];
+  const mensagem = `Olá, ${primeiroNome}! 👋\n\nPara darmos seguimento à sua análise de *Rating de Crédito*, precisamos que você preencha o formulário abaixo com seus dados pessoais e financeiros:\n\n📋 *Ficha de Cadastro*:\n${link}\n\nO preenchimento leva apenas alguns minutos. Qualquer dúvida, estamos à disposição! 😊\n\n*Equipe Limpa Nome*`;
+
+  try {
+    const telNumeros = c.telefone.replace(/\D/g, '');
+    const telCompleto = telNumeros.startsWith('55') ? telNumeros : '55' + telNumeros;
+
+    const res = await fetch('/api/whatsapp/enviar-um', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify({ telefone: telCompleto, mensagem })
+    });
+
+    const json = await res.json();
+    if (!res.ok) throw new Error(json.error || 'Erro ao enviar');
+
+    Components.toast(`✅ Formulário enviado pelo WhatsApp para ${c.nome}!`, 'success');
+  } catch (err) {
+    Components.toast('Erro ao enviar via WhatsApp: ' + err.message, 'danger');
+  }
 };
