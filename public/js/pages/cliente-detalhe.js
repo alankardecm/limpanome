@@ -1163,7 +1163,7 @@ ClienteDetalhePage.loadRating = async function () {
   const tab = document.getElementById('tabRating');
   if (!tab) return;
   const c = this.cliente;
-  const token = localStorage.getItem('token');
+  const token = Auth.getToken();
 
   try {
     const res = await fetch(`/api/rating/${c.id}`, {
@@ -1292,7 +1292,7 @@ ClienteDetalhePage.enviarFormularioRating = async function () {
     return;
   }
 
-  const token = localStorage.getItem('token');
+  const token = Auth.getToken();
   const BASE = window.location.hostname === 'localhost'
     ? 'http://localhost:3000'
     : 'https://limpanome-t73d.vercel.app';
