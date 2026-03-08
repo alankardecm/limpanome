@@ -1170,6 +1170,45 @@ Checklist de tudo que precisa ser feito para o sistema funcionar:
 
 ---
 
+## 💼 Serviços por Cliente — `[EM TESTE]`
+
+Acessível pela ficha do cliente → aba **Serviços**.
+
+Permite registrar quais serviços cada cliente contratou e acompanhar o status de cada um individualmente.
+
+### Como funciona
+
+- Adicione um ou mais serviços ao cliente (Limpa Nome CPF, Rating, BACEN, etc.)
+- Mude o status de cada serviço individualmente: 🔄 Em Andamento → ✅ Concluído → ❌ Cancelado
+- Uma **barra de progresso** mostra quantos serviços estão concluídos (X de Y)
+- Quando **todos** estiverem concluídos, aparece o botão **"Marcar cliente como Concluído"**
+
+### Tipos de serviço disponíveis
+
+| Código | Label |
+|--------|-------|
+| `limpa_nome_cpf` | 🧹 Limpa Nome CPF |
+| `limpa_nome_cnpj` | 🧹 Limpa Nome CNPJ |
+| `rating_cpf` | 📊 Rating CPF |
+| `rating_cnpj` | 📊 Rating CNPJ |
+| `score` | ⭐ Score |
+| `bacen` | 🏦 BACEN |
+
+### API — Endpoints Serviços
+
+| Método | Endpoint | Descrição |
+|--------|----------|-----------|
+| `GET` | `/api/servicos?cliente_id=X` | Lista serviços do cliente |
+| `POST` | `/api/servicos` | Adiciona serviço |
+| `PUT` | `/api/servicos/:id` | Atualiza status/dados |
+| `DELETE` | `/api/servicos/:id` | Remove serviço |
+
+### Banco de dados — `servicos_cliente`
+
+Executar `supabase-schema-servicos.sql` no SQL Editor do Supabase.
+
+---
+
 ## 📊 Rating — Ficha de Cadastro do Cliente
 
 Acessível pelo menu lateral → **Clientes** → ficha do cliente → aba **Rating**.
