@@ -37,6 +37,7 @@ app.use('/api/documentos', require('./routes/documentos'));
 app.use('/api/precos', require('./routes/precos'));
 app.use('/api/prospeccao', require('./routes/prospeccao'));
 app.use('/api/whatsapp', require('./routes/whatsapp'));
+app.use('/api/servicos', require('./routes/servicos'));
 // Nota: /api/rating já registrado acima (público)
 
 

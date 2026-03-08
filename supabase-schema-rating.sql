@@ -59,6 +59,7 @@ CREATE TABLE IF NOT EXISTS fichas_rating (
 -- Execute também no SQL Editor:
 ALTER TABLE fichas_rating ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "Allow all on fichas_rating" ON fichas_rating;
 CREATE POLICY "Allow all on fichas_rating" ON fichas_rating
   FOR ALL USING (true) WITH CHECK (true);
 

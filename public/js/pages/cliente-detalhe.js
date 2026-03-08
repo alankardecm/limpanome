@@ -78,6 +78,9 @@ const ClienteDetalhePage = {
         <button class="detail-tab" data-tab="documentos" onclick="ClienteDetalhePage.setActiveTab('documentos')">
         <i class="fas fa-file-pdf"></i> Documentos
       </button>
+      <button class="detail-tab" data-tab="servicos" onclick="ClienteDetalhePage.setActiveTab('servicos')">
+        <i class="fas fa-briefcase"></i> Serviços
+      </button>
       <button class="detail-tab" data-tab="rating" onclick="ClienteDetalhePage.setActiveTab('rating')">
         <i class="fas fa-chart-bar"></i> Rating
       </button>
@@ -92,6 +95,7 @@ const ClienteDetalhePage = {
       <div id="tabHistorico" class="tab-content">${this.buildTabHistorico()}</div>
       <div id="tabTarefas" class="tab-content">${this.buildTabTarefas()}</div>
       <div id="tabDocumentos" class="tab-content">${this.buildTabDocumentos()}</div>
+    <div id="tabServicos" class="tab-content"><div style="padding:2rem;text-align:center;color:var(--text-light)">Carregando serviços...</div></div>
     <div id="tabRating" class="tab-content"><div style="padding:2rem;text-align:center;color:var(--text-light)">Carregando ficha de rating...</div></div>
   `;
   },
@@ -106,6 +110,8 @@ const ClienteDetalhePage = {
 
     // Carregar documentos ao abrir a aba
     if (tab === 'documentos') this.loadDocumentos();
+    // Carregar serviços ao abrir a aba
+    if (tab === 'servicos') this.loadServicos();
     // Carregar rating ao abrir a aba
     if (tab === 'rating') this.loadRating();
   },
@@ -1154,6 +1160,207 @@ const ClienteDetalhePage = {
     document.getElementById('docCompareDepois').innerHTML = renderDocs(depois);
     document.getElementById('docCompareModal').style.display = 'flex';
   },
+};
+
+// =============================================
+// TAB: SERVIÇOS
+// =============================================
+
+const SERVICO_LABELS = {
+  limpa_nome_cpf: '🧹 Limpa Nome CPF',
+  limpa_nome_cnpj: '🧹 Limpa Nome CNPJ',
+  rating_cpf: '📊 Rating CPF',
+  rating_cnpj: '📊 Rating CNPJ',
+  score: '⭐ Score',
+  bacen: '🏦 BACEN',
+};
+
+const SERVICO_STATUS_LABELS = {
+  em_andamento: { label: 'Em Andamento', color: '#f59e0b', icon: '🔄' },
+  concluido: { label: 'Concluído', color: '#22c55e', icon: '✅' },
+  cancelado: { label: 'Cancelado', color: '#ef4444', icon: '❌' },
+};
+
+ClienteDetalhePage.loadServicos = async function () {
+  const tab = document.getElementById('tabServicos');
+  if (!tab) return;
+  const c = this.cliente;
+  const token = Auth.getToken();
+
+  try {
+    const res = await fetch(`/api/servicos?cliente_id=${c.id}`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    const json = await res.json();
+    const servicos = json.data || [];
+    this._servicos = servicos;
+
+    const total = servicos.length;
+    const concluidos = servicos.filter(s => s.status === 'concluido').length;
+    const pct = total > 0 ? Math.round((concluidos / total) * 100) : 0;
+    const todosOk = total > 0 && concluidos === total;
+
+    const progressBar = total > 0 ? `
+      <div style="margin-bottom:1.5rem;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+          <span style="font-size:0.85rem;color:var(--text-light);">${concluidos} de ${total} serviços concluídos</span>
+          <span style="font-weight:700;color:${pct === 100 ? '#22c55e' : 'var(--primary)'};">${pct}%</span>
+        </div>
+        <div style="background:var(--border);border-radius:8px;height:10px;overflow:hidden;">
+          <div style="height:100%;width:${pct}%;background:${pct === 100 ? '#22c55e' : 'var(--primary)'};border-radius:8px;transition:width 0.4s ease;"></div>
+        </div>
+      </div>` : '';
+
+    const listaHtml = servicos.length === 0
+      ? `<p style="color:var(--text-light);text-align:center;padding:2rem 0;">Nenhum serviço adicionado ainda.</p>`
+      : servicos.map(s => {
+        const st = SERVICO_STATUS_LABELS[s.status] || SERVICO_STATUS_LABELS.em_andamento;
+        const dataInicio = s.data_inicio ? new Date(s.data_inicio + 'T12:00:00').toLocaleDateString('pt-BR') : '–';
+        const dataConclusao = s.data_conclusao ? new Date(s.data_conclusao + 'T12:00:00').toLocaleDateString('pt-BR') : '–';
+        return `
+          <div style="display:flex;align-items:center;gap:12px;padding:14px;border:1px solid var(--border);border-radius:10px;margin-bottom:10px;background:var(--surface);">
+            <div style="flex:1;">
+              <div style="font-weight:600;font-size:0.95rem;">${SERVICO_LABELS[s.tipo] || s.tipo}</div>
+              ${s.descricao ? `<div style="font-size:0.8rem;color:var(--text-light);margin-top:2px;">${Utils.escapeHtml(s.descricao)}</div>` : ''}
+              <div style="font-size:0.75rem;color:var(--text-light);margin-top:4px;">Início: ${dataInicio}${s.data_conclusao ? ` · Concluído: ${dataConclusao}` : ''}</div>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;">
+              <span style="background:${st.color}22;color:${st.color};padding:4px 10px;border-radius:20px;font-size:0.78rem;font-weight:600;white-space:nowrap;">
+                ${st.icon} ${st.label}
+              </span>
+              <select onchange="ClienteDetalhePage.updateStatusServico(${s.id}, this.value)"
+                style="background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:4px 6px;font-size:0.78rem;color:var(--text);cursor:pointer;">
+                <option value="em_andamento" ${s.status === 'em_andamento' ? 'selected' : ''}>🔄 Em Andamento</option>
+                <option value="concluido"    ${s.status === 'concluido' ? 'selected' : ''}>✅ Concluído</option>
+                <option value="cancelado"    ${s.status === 'cancelado' ? 'selected' : ''}>❌ Cancelado</option>
+              </select>
+              <button class="btn btn-danger btn-xs" onclick="ClienteDetalhePage.deleteServico(${s.id})" title="Remover">
+                <i class="fas fa-trash"></i>
+              </button>
+            </div>
+          </div>`;
+      }).join('');
+
+    const btnConcluir = todosOk ? `
+      <div style="margin-top:1.5rem;text-align:center;">
+        <button class="btn btn-primary" onclick="ClienteDetalhePage.concluirCliente()" style="background:#22c55e;border-color:#22c55e;">
+          <i class="fas fa-check-double"></i> Todos os serviços concluídos — Marcar cliente como Concluído
+        </button>
+      </div>` : '';
+
+    tab.innerHTML = `
+      <div class="card">
+        <div class="card-header" style="display:flex;justify-content:space-between;align-items:center;">
+          <h3><i class="fas fa-briefcase"></i> Serviços Contratados</h3>
+          <button class="btn btn-primary btn-sm" onclick="ClienteDetalhePage.addServico()">
+            <i class="fas fa-plus"></i> Adicionar Serviço
+          </button>
+        </div>
+        <div class="card-body">
+          ${progressBar}
+          ${listaHtml}
+          ${btnConcluir}
+        </div>
+      </div>`;
+  } catch (err) {
+    console.error('Erro ao carregar serviços:', err);
+    if (tab) tab.innerHTML = `<div class="card"><div class="card-body" style="color:var(--danger)">Erro ao carregar serviços.</div></div>`;
+  }
+};
+
+ClienteDetalhePage.addServico = function () {
+  const tiposOptions = Object.entries(SERVICO_LABELS)
+    .map(([v, l]) => `<option value="${v}">${l}</option>`)
+    .join('');
+
+  App.openModal('Adicionar Serviço', `
+    <div class="form-grid">
+      <div class="form-group full-width">
+        <label>Tipo de Serviço *</label>
+        <select id="svTipo">${tiposOptions}</select>
+      </div>
+      <div class="form-group full-width">
+        <label>Descrição (opcional)</label>
+        <input id="svDesc" placeholder="Ex: CPF 123.456.789-00">
+      </div>
+      <div class="form-group">
+        <label>Data de Início</label>
+        <input id="svDataInicio" type="date" value="${new Date().toISOString().split('T')[0]}">
+      </div>
+    </div>
+    <div class="form-actions">
+      <button class="btn btn-outline" onclick="App.closeModal()">Cancelar</button>
+      <button class="btn btn-primary" onclick="ClienteDetalhePage.saveServico()">Salvar</button>
+    </div>
+  `);
+};
+
+ClienteDetalhePage.saveServico = async function () {
+  const token = Auth.getToken();
+  try {
+    const res = await fetch('/api/servicos', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify({
+        cliente_id: this.clienteId,
+        tipo: document.getElementById('svTipo').value,
+        descricao: document.getElementById('svDesc').value,
+        data_inicio: document.getElementById('svDataInicio').value,
+      })
+    });
+    const json = await res.json();
+    if (!res.ok) throw new Error(json.error || 'Erro ao salvar');
+    App.closeModal();
+    App.toast('Serviço adicionado!', 'success');
+    this.loadServicos();
+  } catch (err) {
+    App.toast(err.message, 'error');
+  }
+};
+
+ClienteDetalhePage.updateStatusServico = async function (id, novoStatus) {
+  const token = Auth.getToken();
+  try {
+    const res = await fetch(`/api/servicos/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify({ status: novoStatus })
+    });
+    const json = await res.json();
+    if (!res.ok) throw new Error(json.error || 'Erro ao atualizar');
+    App.toast(`Status atualizado: ${SERVICO_STATUS_LABELS[novoStatus]?.label}`, 'success');
+    this.loadServicos();
+  } catch (err) {
+    App.toast(err.message, 'error');
+  }
+};
+
+ClienteDetalhePage.deleteServico = async function (id) {
+  if (!confirm('Remover este serviço?')) return;
+  const token = Auth.getToken();
+  try {
+    const res = await fetch(`/api/servicos/${id}`, {
+      method: 'DELETE',
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    if (!res.ok) throw new Error('Erro ao remover');
+    App.toast('Serviço removido', 'success');
+    this.loadServicos();
+  } catch (err) {
+    App.toast(err.message, 'error');
+  }
+};
+
+ClienteDetalhePage.concluirCliente = async function () {
+  const ok = confirm('Marcar este cliente como CONCLUÍDO? Todos os serviços estão finalizados.');
+  if (!ok) return;
+  try {
+    await API.clientes.atualizar(this.clienteId, { status: 'concluido' });
+    App.toast('✅ Cliente marcado como Concluído!', 'success');
+    this.render(this.clienteId);
+  } catch (err) {
+    App.toast(err.message, 'error');
+  }
 };
 
 // =============================================
