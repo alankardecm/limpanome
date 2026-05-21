@@ -29,6 +29,7 @@ Sistema CRM completo para gestão de clientes do projeto **Limpa Nome** — serv
 18. [Variáveis de Ambiente](#-variáveis-de-ambiente)
 19. [Guia de Uso do CRM](#-guia-de-uso-do-crm)
 20. [Troubleshooting](#-troubleshooting)
+21. [Integracao Amarilis](./AMARILIS_INTEGRACAO.md)
 
 ---
 

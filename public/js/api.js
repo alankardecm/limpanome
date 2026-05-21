@@ -66,6 +66,9 @@ const API = {
     excluir(id) {
       return API.request(`/clientes/${id}`, { method: 'DELETE' });
     },
+    consultarCredito(id) {
+      return API.request(`/clientes/${id}/consultar-credito`, { method: 'POST' });
+    },
   },
 
   // === Dívidas ===

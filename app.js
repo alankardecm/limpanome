@@ -14,6 +14,7 @@ app.use(express.urlencoded({ extended: true }));
 // Rotas públicas (sem autenticação)
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/webhook', require('./routes/webhook'));
+app.use('/api/webhook/amarilis', require('./routes/amarilis-webhook'));
 app.use('/api/ia-sdr', require('./routes/ia-sdr')); // IA SDR webhook é público
 app.use('/api/rating', require('./routes/rating')); // Rating: POST /submit é público
 

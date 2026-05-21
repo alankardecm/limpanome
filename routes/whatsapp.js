@@ -1,50 +1,11 @@
 const express = require('express');
 const router = express.Router();
 const supabase = require('../lib/supabase');
+const { enviarMensagem } = require('../lib/whatsappService');
 
 // =============================================
-// MÓDULO WHATSAPP — Disparo em Massa via Meta Cloud API
+// MÓDULO WHATSAPP — Disparo em Massa
 // =============================================
-
-const META_API = 'https://graph.facebook.com/v19.0';
-
-function getMetaConfig() {
-    const token = process.env.META_WHATSAPP_TOKEN;
-    const phoneId = process.env.META_PHONE_NUMBER_ID;
-    if (!token || !phoneId) throw new Error('META_WHATSAPP_TOKEN ou META_PHONE_NUMBER_ID não configurados');
-    return { token, phoneId };
-}
-
-function formatarTelefone(tel) {
-    const limpo = (tel || '').replace(/\D/g, '');
-    if (!limpo) return null;
-    return limpo.startsWith('55') ? limpo : `55${limpo}`;
-}
-
-async function enviarMensagemMeta(telefone, mensagem, token, phoneId) {
-    const tel = formatarTelefone(telefone);
-    if (!tel) throw new Error('Telefone inválido');
-
-    const response = await fetch(`${META_API}/${phoneId}/messages`, {
-        method: 'POST',
-        headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-            messaging_product: 'whatsapp',
-            to: tel,
-            type: 'text',
-            text: { body: mensagem }
-        })
-    });
-
-    const data = await response.json();
-    if (!response.ok) {
-        throw new Error(data?.error?.message || `HTTP ${response.status}`);
-    }
-    return data;
-}
 
 // POST /api/whatsapp/enviar-um — Envia para 1 número (teste rápido)
 router.post('/enviar-um', async (req, res) => {
@@ -52,8 +13,7 @@ router.post('/enviar-um', async (req, res) => {
         const { telefone, mensagem } = req.body;
         if (!telefone || !mensagem) return res.status(400).json({ error: 'telefone e mensagem são obrigatórios' });
 
-        const { token, phoneId } = getMetaConfig();
-        const result = await enviarMensagemMeta(telefone, mensagem, token, phoneId);
+        const result = await enviarMensagem(telefone, mensagem);
 
         res.json({ status: 'ok', resultado: result });
     } catch (err) {
@@ -74,7 +34,6 @@ router.post('/disparar-numeros', async (req, res) => {
         const validos = contatos.filter(c => c.telefone && c.telefone.replace(/\D/g, '').length >= 8);
         if (!validos.length) return res.status(400).json({ error: 'Nenhum contato com telefone válido' });
 
-        const { token, phoneId } = getMetaConfig();
         const campanha_id = `wpp_maps_${Date.now()}`;
         const titulo = titulo_campanha || `Disparo Prospecção ${new Date().toLocaleDateString('pt-BR')}`;
 
@@ -91,7 +50,7 @@ router.post('/disparar-numeros', async (req, res) => {
                         .replace(/\{\{nome\}\}/gi, contato.nome?.split(' ')[0] || 'cliente')
                         .replace(/\{\{telefone\}\}/gi, contato.telefone || '');
 
-                    await enviarMensagemMeta(contato.telefone, msgPersonalizada, token, phoneId);
+                    await enviarMensagem(contato.telefone, msgPersonalizada);
                     enviados++;
                     resultados.push({ nome: contato.nome, telefone: contato.telefone, status: 'enviado' });
 
@@ -135,8 +94,6 @@ router.post('/disparar', async (req, res) => {
         if (!mensagem) return res.status(400).json({ error: 'mensagem é obrigatória' });
         if (!cliente_ids?.length && !filtro_status) return res.status(400).json({ error: 'Selecione os leads ou um status de filtro' });
 
-        const { token, phoneId } = getMetaConfig();
-
         // Buscar clientes alvo
         let query = supabase.from('clientes').select('id, nome, telefone').not('telefone', 'is', null).neq('telefone', '');
         if (cliente_ids?.length) {
@@ -169,12 +126,12 @@ router.post('/disparar', async (req, res) => {
                         .replace(/\{\{nome\}\}/gi, cliente.nome?.split(' ')[0] || 'cliente')
                         .replace(/\{\{telefone\}\}/gi, cliente.telefone || '');
 
-                    await enviarMensagemMeta(cliente.telefone, msgPersonalizada, token, phoneId);
+                    await enviarMensagem(cliente.telefone, msgPersonalizada);
 
                     resultados.push({ cliente_id: cliente.id, nome: cliente.nome, telefone: cliente.telefone, status: 'enviado' });
                     enviados++;
 
-                    // Registrar no histórico
+                    // Registrar no histórico de envios individuais
                     await supabase.from('historico').insert({
                         cliente_id: cliente.id,
                         tipo: 'whatsapp_disparo',

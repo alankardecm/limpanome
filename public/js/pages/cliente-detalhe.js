@@ -43,6 +43,11 @@ const ClienteDetalhePage = {
           </div>
         </div>
         <div class="btn-group">
+          ${c.cpf ? `
+            <button class="btn btn-primary btn-sm" onclick="ClienteDetalhePage.consultarCredito()" id="btnConsultarCredito">
+              <i class="fas fa-search-dollar"></i> Consultar CPF/CNPJ
+            </button>
+          ` : ''}
           <button class="btn btn-outline btn-sm" onclick="ClienteDetalhePage.editarCliente()">
             <i class="fas fa-edit"></i> Editar
           </button>
@@ -458,6 +463,33 @@ const ClienteDetalhePage = {
 
   editarCliente() {
     App.openClienteModal(this.cliente);
+  },
+
+  async consultarCredito() {
+    const btn = document.getElementById('btnConsultarCredito');
+    if (!this.cliente.cpf) {
+      App.toast('Cliente não possui CPF cadastrado para consulta!', 'error');
+      return;
+    }
+
+    const originalHTML = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Consultando...`;
+
+    try {
+      App.toast('Iniciando consulta aos bureaus...', 'info');
+      const res = await API.clientes.consultarCredito(this.clienteId);
+      
+      App.toast(`Consulta finalizada! Score: ${res.score}. Dívidas e BACEN atualizados.`, 'success');
+      
+      // Recarregar os detalhes do cliente
+      await this.render(this.clienteId);
+    } catch (err) {
+      App.toast(err.message || 'Erro ao realizar consulta de crédito', 'error');
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = originalHTML;
+    }
   },
 
   async excluirCliente() {

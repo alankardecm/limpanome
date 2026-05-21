@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const supabase = require('../lib/supabase');
+const { realizarConsulta } = require('../lib/consultaCredito');
 
 // GET /api/clientes - Listar clientes com paginação, busca e filtros
 router.get('/', async (req, res) => {
@@ -57,12 +58,13 @@ router.get('/:id', async (req, res) => {
       throw error;
     }
 
-    // Buscar dados relacionados em paralelo
-    const [dividasRes, processosRes, bacenRes, historicoRes] = await Promise.all([
+    // Buscar dados relacionados em paralelo (incluindo histórico de score)
+    const [dividasRes, processosRes, bacenRes, historicoRes, scoreHistoricoRes] = await Promise.all([
       supabase.from('dividas').select('*').eq('cliente_id', cliente.id).order('data_cadastro', { ascending: false }),
       supabase.from('processos').select('*').eq('cliente_id', cliente.id).order('data_cadastro', { ascending: false }),
       supabase.from('apontamentos_bacen').select('*').eq('cliente_id', cliente.id).order('data_consulta', { ascending: false }),
-      supabase.from('historico').select('*').eq('cliente_id', cliente.id).order('data_registro', { ascending: false }).limit(20)
+      supabase.from('historico').select('*').eq('cliente_id', cliente.id).order('data_registro', { ascending: false }).limit(20),
+      supabase.from('score_historico').select('*').eq('cliente_id', cliente.id).order('data_consulta', { ascending: false })
     ]);
 
     res.json({
@@ -70,7 +72,8 @@ router.get('/:id', async (req, res) => {
       dividas: dividasRes.data || [],
       processos: processosRes.data || [],
       apontamentos_bacen: bacenRes.data || [],
-      historico: historicoRes.data || []
+      historico: historicoRes.data || [],
+      scores: scoreHistoricoRes.data || []
     });
   } catch (err) {
     console.error('Erro ao buscar cliente:', err);
@@ -188,6 +191,126 @@ router.delete('/:id', async (req, res) => {
     res.json({ message: 'Cliente excluído com sucesso' });
   } catch (err) {
     console.error('Erro ao excluir cliente:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// POST /api/clientes/:id/consultar-credito - Consultar dados cadastrais, score e dívidas
+router.post('/:id/consultar-credito', async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // 1. Buscar cliente
+    const { data: cliente, error: clientErr } = await supabase
+      .from('clientes')
+      .select('*')
+      .eq('id', id)
+      .single();
+
+    if (clientErr || !cliente) {
+      return res.status(404).json({ error: 'Cliente não encontrado' });
+    }
+
+    const documento = cliente.cpf;
+    if (!documento) {
+      return res.status(400).json({ error: 'Cliente não possui CPF cadastrado' });
+    }
+
+    // 2. Chamar serviço de consulta
+    const consulta = await realizarConsulta(documento);
+
+    // 3. Atualizar cliente com o score e registrar score inicial se necessário
+    const updates = {
+      score_atual: consulta.score,
+      data_atualizacao: new Date().toISOString()
+    };
+    if (!cliente.score_inicial) {
+      updates.score_inicial = consulta.score;
+    }
+
+    const { error: updateErr } = await supabase
+      .from('clientes')
+      .update(updates)
+      .eq('id', id);
+
+    if (updateErr) throw updateErr;
+
+    // 4. Salvar score no histórico
+    await supabase.from('score_historico').insert({
+      cliente_id: id,
+      score: consulta.score,
+      bureau: 'Geral'
+    });
+
+    // 5. Deletar dívidas automáticas anteriores do cliente para evitar duplicidade
+    await supabase.from('dividas')
+      .delete()
+      .eq('cliente_id', id)
+      .eq('observacoes', 'Registro importado via consulta automática de birô de crédito.');
+
+    // 6. Gravar novas dívidas se houver
+    if (consulta.dividas && consulta.dividas.length > 0) {
+      const dividasParaGravar = consulta.dividas.map(d => ({
+        cliente_id: id,
+        credor: d.credor,
+        valor_original: d.valor_original,
+        valor_atualizado: d.valor_atualizado,
+        tipo: d.tipo,
+        bureau: d.bureau,
+        data_vencimento: d.data_vencimento,
+        contrato: d.contrato,
+        status: d.status,
+        observacoes: d.observacoes
+      }));
+
+      const { error: insDividaErr } = await supabase
+        .from('dividas')
+        .insert(dividasParaGravar);
+
+      if (insDividaErr) throw insDividaErr;
+    }
+
+    // 7. Deletar apontamentos BACEN automáticos anteriores do cliente
+    await supabase.from('apontamentos_bacen')
+      .delete()
+      .eq('cliente_id', id)
+      .eq('observacoes', 'Apontamento registrado no SCR - Sistema de Informações de Crédito do Banco Central.');
+
+    // 8. Gravar novos apontamentos BACEN se houver
+    if (consulta.apontamentos_bacen && consulta.apontamentos_bacen.length > 0) {
+      const bacenParaGravar = consulta.apontamentos_bacen.map(b => ({
+        cliente_id: id,
+        tipo: b.tipo,
+        instituicao: b.instituicao,
+        valor: b.valor,
+        data_ocorrencia: b.data_ocorrencia,
+        status: b.status,
+        observacoes: b.observacoes
+      }));
+
+      const { error: insBacenErr } = await supabase
+        .from('apontamentos_bacen')
+        .insert(bacenParaGravar);
+
+      if (insBacenErr) throw insBacenErr;
+    }
+
+    // 9. Registrar no histórico do cliente
+    await supabase.from('historico').insert({
+      cliente_id: id,
+      tipo: 'consulta_credito',
+      descricao: `Consulta de crédito realizada automaticamente. Novo score: ${consulta.score}. Restrições importadas: ${consulta.dividas.length} dívidas, ${consulta.apontamentos_bacen.length} apontamentos BACEN.`,
+      usuario: 'sistema'
+    });
+
+    res.json({
+      success: true,
+      score: consulta.score,
+      dividasImportadas: consulta.dividas.length,
+      bacenImportados: consulta.apontamentos_bacen.length
+    });
+  } catch (err) {
+    console.error('Erro na consulta de crédito:', err.message);
     res.status(500).json({ error: err.message });
   }
 });

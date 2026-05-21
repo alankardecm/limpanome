@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const supabase = require('../lib/supabase');
 const { gerarResposta } = require('../lib/sdrAgent');
+const whatsappService = require('../lib/whatsappService');
 
 // =============================================
 // IA SDR — Agente de Conversão via WhatsApp
@@ -120,36 +121,18 @@ router.post('/webhook', async (req, res) => {
                 .eq('id', cliente.id);
 
             // 7.1 Notificar o dono via WhatsApp
-            const notifToken = process.env.META_WHATSAPP_TOKEN;
-            const notifPhoneId = process.env.META_PHONE_NUMBER_ID;
-            const notifDestino = process.env.NOTIF_WHATSAPP_NUMERO || '5519992244838';
+            const notifMsg = `🚨 *LEAD QUALIFICADO!*\n\n` +
+                `👤 *Nome:* ${cliente.nome}\n` +
+                `📱 *Telefone:* ${cliente.telefone}\n` +
+                `💬 *Última msg:* "${mensagem}"\n` +
+                `🤖 *Ana respondeu:* "${resultado.resposta?.substring(0, 100)}..."\n\n` +
+                `⚡ Abra o CRM para ver a conversa completa e entre em contato!`;
 
-            if (notifToken && notifPhoneId) {
-                const notifMsg = `🚨 *LEAD QUALIFICADO!*\n\n` +
-                    `👤 *Nome:* ${cliente.nome}\n` +
-                    `📱 *Telefone:* ${cliente.telefone}\n` +
-                    `💬 *Última msg:* "${mensagem}"\n` +
-                    `🤖 *Ana respondeu:* "${resultado.resposta?.substring(0, 100)}..."\n\n` +
-                    `⚡ Abra o CRM para ver a conversa completa e entre em contato!`;
-
-                try {
-                    await fetch(`https://graph.facebook.com/v19.0/${notifPhoneId}/messages`, {
-                        method: 'POST',
-                        headers: {
-                            'Authorization': `Bearer ${notifToken}`,
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({
-                            messaging_product: 'whatsapp',
-                            to: notifDestino,
-                            type: 'text',
-                            text: { body: notifMsg }
-                        })
-                    });
-                    console.log('Notificação enviada para:', notifDestino);
-                } catch (notifErr) {
-                    console.error('Erro ao enviar notificação:', notifErr.message);
-                }
+            try {
+                await whatsappService.enviarNotificacaoInterna(notifMsg);
+                console.log('Notificação enviada para o consultor.');
+            } catch (notifErr) {
+                console.error('Erro ao enviar notificação:', notifErr.message);
             }
         }
 
@@ -161,31 +144,11 @@ router.post('/webhook', async (req, res) => {
                 .eq('id', cliente.id);
         }
 
-        // 9. Enviar resposta via WhatsApp (se configurado)
-        const metaToken = process.env.META_WHATSAPP_TOKEN;
-        const phoneNumberId = process.env.META_PHONE_NUMBER_ID;
-
-        if (metaToken && phoneNumberId) {
-            let telWhatsapp = telLimpo;
-            if (!telWhatsapp.startsWith('55')) telWhatsapp = '55' + telWhatsapp;
-
-            try {
-                await fetch(`https://graph.facebook.com/v19.0/${phoneNumberId}/messages`, {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': `Bearer ${metaToken}`,
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        messaging_product: 'whatsapp',
-                        to: telWhatsapp,
-                        type: 'text',
-                        text: { body: resultado.resposta }
-                    })
-                });
-            } catch (whatsappErr) {
-                console.error('Erro ao enviar WhatsApp:', whatsappErr.message);
-            }
+        // 9. Enviar resposta via WhatsApp
+        try {
+            await whatsappService.enviarMensagem(telLimpo, resultado.resposta);
+        } catch (whatsappErr) {
+            console.error('Erro ao enviar resposta via WhatsApp:', whatsappErr.message);
         }
 
         res.json({
