@@ -1,0 +1,58 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: evolution_postgres
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: pg_evo_pass_2026_987x
+      POSTGRES_DB: evolution_db
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      - "5436:5432"
+    networks:
+      - evolution_net
+
+  evolution-api:
+    image: evoapicloud/evolution-api:latest
+    container_name: evolution_api
+    restart: always
+    ports:
+      - "8084:8080"
+    environment:
+      - SERVER_PORT=8080
+      - SERVER_URL=http://217.196.61.190:8084
+      - AUTHENTICATION_TYPE=apikey
+      - AUTHENTICATION_API_KEY=evo_api_key_2026_secure_key_192
+      - REDIS_ENABLED=false
+      - CACHE_REDIS_ENABLED=false
+      
+      # Banco de dados para persistir sessões
+      - DATABASE_ENABLED=true
+      - DATABASE_PROVIDER=postgresql
+      - DATABASE_CONNECTION_URI=postgresql://postgres:pg_evo_pass_2026_987x@postgres:5432/evolution_db
+      - DATABASE_SAVE_DATA_INSTANCE=true
+      - DATABASE_SAVE_DATA_NEW_MESSAGE=false
+      - DATABASE_SAVE_MESSAGE_CONN=false
+      
+      # Configurações globais
+      - DELAY_MESSAGES=2000
+    depends_on:
+      - postgres
+    networks:
+      - evolution_net
+    volumes:
+      - evolution_instances:/evolution/instances
+
+networks:
+  evolution_net:
+    driver: bridge
+
+volumes:
+  pgdata:
+    driver: local
+  evolution_instances:
+    driver: local

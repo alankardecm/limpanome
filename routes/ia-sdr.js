@@ -11,7 +11,28 @@ const whatsappService = require('../lib/whatsappService');
 // POST /api/ia-sdr/webhook — Recebe mensagem do WhatsApp (público)
 router.post('/webhook', async (req, res) => {
     try {
-        const { telefone, mensagem, nome } = req.body;
+        let { telefone, mensagem, nome } = req.body;
+
+        // Se for um payload de webhook da Evolution API
+        if (req.body.event) {
+            if (req.body.event !== 'messages.upsert') {
+                return res.json({ status: 'ignored', reason: `evento ${req.body.event} nao tratado` });
+            }
+            
+            const data = req.body.data;
+            
+            // Ignorar se a mensagem foi enviada por nós mesmos para evitar loop
+            if (data?.key?.fromMe) {
+                return res.json({ status: 'ignored', reason: 'mensagem enviada pelo proprio bot' });
+            }
+            
+            telefone = (data?.key?.remoteJid || '').split('@')[0];
+            nome = data?.pushName || '';
+            mensagem = data?.message?.conversation || 
+                       data?.message?.extendedTextMessage?.text || 
+                       data?.message?.imageMessage?.caption || 
+                       '';
+        }
 
         if (!telefone || !mensagem) {
             return res.status(400).json({ error: 'telefone e mensagem são obrigatórios' });
@@ -250,6 +271,80 @@ router.post('/toggle', async (req, res) => {
     } catch (err) {
         console.error('Erro toggle:', err);
         res.status(500).json({ error: err.message });
+    }
+});
+
+// GET /api/ia-sdr/connect-view — Renderiza o QR Code do WhatsApp em tempo real com auto-refresh
+router.get('/connect-view', async (req, res) => {
+    try {
+        const url = `${process.env.EVOLUTION_API_URL || 'http://localhost:8084'}/instance/connect/${process.env.EVOLUTION_INSTANCE_NAME || 'limpa_nome_instance'}`;
+        const apiKey = process.env.EVOLUTION_API_KEY || 'evo_api_key_2026_secure_key_192';
+
+        const response = await fetch(url, {
+            headers: { 'apikey': apiKey }
+        });
+
+        const data = await response.json();
+        
+        if (!response.ok) {
+            return res.send(`
+                <html>
+                <body style="font-family: sans-serif; background-color: #121212; color: #fff; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0;">
+                    <h2 style="color: #ff4a4a;">Erro ao conectar com a Evolution API</h2>
+                    <p>${JSON.stringify(data)}</p>
+                    <button onclick="window.location.reload()" style="padding: 10px 20px; font-size: 16px; background-color: #00e676; border: none; border-radius: 5px; color: #000; cursor: pointer; font-weight: bold; margin-top: 20px;">Tentar Novamente</button>
+                </body>
+                </html>
+            `);
+        }
+
+        // Tentar obter a string base64
+        const base64Data = data.base64 || data.qrcode?.base64 || data.code;
+
+        if (!base64Data) {
+            return res.send(`
+                <html>
+                <body style="font-family: sans-serif; background-color: #121212; color: #fff; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0;">
+                    <h2 style="color: #ffa726;">QR Code ainda não gerado ou dispositivo já conectado</h2>
+                    <p>Resposta da API: ${JSON.stringify(data)}</p>
+                    <button onclick="window.location.reload()" style="padding: 10px 20px; font-size: 16px; background-color: #00e676; border: none; border-radius: 5px; color: #000; cursor: pointer; font-weight: bold; margin-top: 20px;">Atualizar</button>
+                </body>
+                </html>
+            `);
+        }
+
+        let cleanBase64 = base64Data;
+        if (!cleanBase64.startsWith('data:image')) {
+            cleanBase64 = `data:image/png;base64,${cleanBase64}`;
+        }
+
+        res.send(`
+            <html>
+            <head>
+                <title>Conectar WhatsApp - CRM Limpa Nome</title>
+                <!-- Auto-recarrega a página a cada 15 segundos para pegar o QR Code novo antes de expirar -->
+                <meta http-equiv="refresh" content="15">
+            </head>
+            <body style="font-family: sans-serif; background-color: #121212; color: #fff; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; padding: 20px; box-sizing: border-box;">
+                <div style="background-color: #1e1e1e; padding: 30px; border-radius: 10px; box-shadow: 0 4px 20px rgba(0,0,0,0.5); text-align: center; max-width: 400px; width: 100%;">
+                    <h2 style="margin-top: 0; color: #00e676;">Escaneie o QR Code</h2>
+                    <p style="color: #aaa; font-size: 14px; margin-bottom: 25px;">A página recarrega automaticamente a cada 15s para manter o código válido.</p>
+                    
+                    <div style="background: #fff; padding: 15px; border-radius: 8px; display: inline-block; margin-bottom: 25px;">
+                        <img src="${cleanBase64}" style="width: 250px; height: 250px; display: block;" alt="WhatsApp QR Code"/>
+                    </div>
+                    
+                    ${data.pairingCode ? `<div style="margin-bottom: 20px; background-color: #2e2e2e; padding: 10px; border-radius: 5px;"><span style="color: #aaa; font-size: 13px;">Código de Pareamento:</span> <strong style="color: #00e676; font-size: 18px; display: block; margin-top: 5px;">${data.pairingCode}</strong></div>` : ''}
+
+                    <div style="font-size: 12px; color: #666;">
+                        Tentativa: ${data.count || 1} | Instância: ${process.env.EVOLUTION_INSTANCE_NAME || 'limpa_nome_instance'}
+                    </div>
+                </div>
+            </body>
+            </html>
+        `);
+    } catch (err) {
+        res.status(500).send(`Erro interno ao gerar página de conexão: ${err.message}`);
     }
 });
 
