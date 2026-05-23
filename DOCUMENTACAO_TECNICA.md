@@ -199,40 +199,55 @@ O projeto está configurado para rodar com o banco de dados Supabase hospedado n
 
 ## ⚙️ 8. Configuração e Recuperação da Evolution API (VPS)
 
-Caso precise reconfigurar, reinstalar ou recuperar a Evolution API na VPS Hostinger, siga as instruções abaixo:
+Caso precise reconfigurar, reinstalar ou recuperar a Evolution API na VPS Hostinger, siga as instruções abaixo. A configuração atual está ativa usando contêineres Docker e integrada ao CRM.
+
+### 📋 Portas e Credenciais Ativas (Maio/2026):
+* **Evolution API (Host):** `http://localhost:8084` (Exposto externamente em `http://217.196.61.190:8084`)
+* **Evolution Postgres (Host):** `5436` (Senha: `pg_evo_pass_2026_987x`)
+* **Global API Key:** `evo_api_key_2026_secure_key_192`
+* **Nome da Instância:** `limpa_nome_instance`
+* **Redis:** Desativado (`REDIS_ENABLED=false` e `CACHE_REDIS_ENABLED=false`) para evitar loops de erro que impedem conexões do WhatsApp.
 
 ### 1. Subindo os Containers (Docker Compose)
-O arquivo `docker-compose.yml` está na raiz do projeto. Para subir o serviço:
+O arquivo `docker-compose.yml` está na raiz do projeto. Para subir ou reiniciar o serviço na VPS:
 ```bash
+docker compose down
 docker compose up -d
 ```
-Isso iniciará:
-* **PostgreSQL (Porta 5432)**: Banco persistente para dados de instâncias e sessões do WhatsApp.
-* **Evolution API (Porta 8080)**: Serviço principal.
 
 ### 2. Criação da Instância e Conexão do QR Code
-1. Crie uma nova instância enviando uma requisição POST para o endpoint `/instance/create` da Evolution API.
-2. Escaneie o QR Code retornado no terminal/JSON para parear o número do WhatsApp.
+A instância `limpa_nome_instance` já foi criada. Para exibir o QR Code em tempo real e realizar o pareamento de forma segura (com auto-refresh a cada 15 segundos para evitar expiração do código), acesse em seu navegador:
+👉 **`http://217.196.61.190:3000/api/ia-sdr/connect-view`**
+
+*(Se precisar recriar a instância do zero via terminal, o endpoint é `POST /instance/create` com o conector `"integration": "WHATSAPP-BAILEYS"`)*.
 
 ### 3. Integração com o CRM
-No arquivo `.env` do CRM, configure as seguintes variáveis:
+No arquivo `.env` do CRM na VPS, as variáveis configuradas são:
 ```env
-EVOLUTION_API_URL="http://localhost:8080"
-EVOLUTION_API_KEY="api_key_definida_no_docker_compose"
-EVOLUTION_INSTANCE_NAME="nome_da_instancia_criada"
-NOTIF_WHATSAPP_NUMERO="5519992244838"
+EVOLUTION_API_URL="http://localhost:8084"
+EVOLUTION_API_KEY="evo_api_key_2026_secure_key_192"
+EVOLUTION_INSTANCE_NAME="limpa_nome_instance"
+```
+Após qualquer alteração, reinicie o CRM no PM2:
+```bash
+pm2 restart crm-limpanome
 ```
 
-### 4. Configuração do Webhook da Evolution API
-Para habilitar o SDR Automático (IA Ana), a Evolution API precisa notificar o CRM sobre novas mensagens recebidas. Faça um POST para o endpoint `/webhook/set/{nome_da_instancia}` da Evolution API com o seguinte payload:
-```json
-{
-  "enabled": true,
-  "url": "https://seu-dominio-crm.com/api/ia-sdr/webhook",
-  "byEvents": true,
-  "events": [
-    "MESSAGES_UPSERT"
-  ]
-}
+### 4. Próximo Passo: Configuração do Webhook (Ativação da IA Ana)
+Assim que você **escanear o QR Code** e conectar o WhatsApp através da página `/connect-view`, a Evolution API precisa ser instruída a notificar o CRM sobre novas mensagens recebidas.
+
+Para ativar o webhook da IA, execute o seguinte comando `curl` no terminal da VPS:
+```bash
+curl -X POST "http://localhost:8084/webhook/set/limpa_nome_instance" \
+     -H "Content-Type: application/json" \
+     -H "apikey: evo_api_key_2026_secure_key_192" \
+     -d '{
+       "enabled": true,
+       "url": "http://217.196.61.190:3000/api/ia-sdr/webhook",
+       "byEvents": true,
+       "events": [
+         "MESSAGES_UPSERT"
+       ]
+     }'
 ```
-Isso fará com que o CRM receba e responda às mensagens de forma automatizada.
+Isso ligará o fluxo de recebimento do webhook na rota pública `/api/ia-sdr/webhook` para o processamento de conversas da IA.
