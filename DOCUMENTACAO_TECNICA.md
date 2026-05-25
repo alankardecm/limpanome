@@ -233,21 +233,10 @@ Após qualquer alteração, reinicie o CRM no PM2:
 pm2 restart crm-limpanome
 ```
 
-### 4. Próximo Passo: Configuração do Webhook (Ativação da IA Ana)
-Assim que você **escanear o QR Code** e conectar o WhatsApp através da página `/connect-view`, a Evolution API precisa ser instruída a notificar o CRM sobre novas mensagens recebidas.
+### 4. Configuração do Webhook (Ativação da IA Ana) - [CONCLUÍDO E ATIVO]
+O webhook da Evolution API foi configurado com sucesso e está ativado para notificar o CRM sobre novas mensagens recebidas.
 
-Para ativar o webhook da IA, execute o seguinte comando `curl` no terminal da VPS:
-```bash
-curl -X POST "http://localhost:8084/webhook/set/limpa_nome_instance" \
-     -H "Content-Type: application/json" \
-     -H "apikey: evo_api_key_2026_secure_key_192" \
-     -d '{
-       "enabled": true,
-       "url": "http://217.196.61.190:3000/api/ia-sdr/webhook",
-       "byEvents": true,
-       "events": [
-         "MESSAGES_UPSERT"
-       ]
-     }'
-```
-Isso ligará o fluxo de recebimento do webhook na rota pública `/api/ia-sdr/webhook` para o processamento de conversas da IA.
+* **URL do Webhook:** `http://217.196.61.190:3000/api/ia-sdr/webhook`
+* **Eventos Ativos:** `MESSAGES_UPSERT` (em letras maiúsculas, seguindo a convenção da Evolution API v2).
+* **Tratamento de Case-Insensitivity:** O arquivo `routes/ia-sdr.js` foi atualizado para validar os eventos de forma case-insensitive (`req.body.event.toLowerCase() !== 'messages.upsert'`), garantindo que tanto eventos em letras maiúsculas quanto minúsculas sejam processados corretamente pela IA Ana.
+
