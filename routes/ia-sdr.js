@@ -15,7 +15,7 @@ router.post('/webhook', async (req, res) => {
 
         // Se for um payload de webhook da Evolution API
         if (req.body.event) {
-            if (req.body.event !== 'messages.upsert') {
+            if (req.body.event.toLowerCase() !== 'messages.upsert') {
                 return res.json({ status: 'ignored', reason: `evento ${req.body.event} nao tratado` });
             }
             
