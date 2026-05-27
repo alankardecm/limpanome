@@ -69,7 +69,7 @@ Regras críticas para o "imagePrompt":
     }
     const resultObj = JSON.parse(content);
 
-    // 2. Chamar DALL-E 3 para gerar a imagem (com fallback para DALL-E 2)
+    // 2. Chamar gpt-image-2 para gerar a imagem (com fallback para gpt-image-1-mini)
     let imageResponse = await fetch('https://api.openai.com/v1/images/generations', {
       method: 'POST',
       headers: {
@@ -77,11 +77,10 @@ Regras críticas para o "imagePrompt":
         'Authorization': `Bearer ${openaiKey}`
       },
       body: JSON.stringify({
-        model: 'dall-e-3',
+        model: 'gpt-image-2',
         prompt: `${resultObj.imagePrompt}, professional graphic style, sleek corporate color palette, high resolution, clean background, no text, no letters`,
         n: 1,
-        size: '1024x1024',
-        quality: 'standard'
+        size: '1024x1024'
       })
     });
 
@@ -89,9 +88,9 @@ Regras críticas para o "imagePrompt":
 
     if (!imageResponse.ok) {
       const errText = await imageResponse.text();
-      console.warn(`DALL-E 3 falhou (talvez a conta não tenha acesso), tentando fallback para DALL-E 2. Erro: ${errText}`);
+      console.warn(`gpt-image-2 falhou, tentando fallback para gpt-image-1-mini. Erro: ${errText}`);
       
-      // Chamada de Fallback com DALL-E 2 (não aceita o parâmetro quality)
+      // Chamada de Fallback com gpt-image-1-mini
       imageResponse = await fetch('https://api.openai.com/v1/images/generations', {
         method: 'POST',
         headers: {
@@ -99,7 +98,7 @@ Regras críticas para o "imagePrompt":
           'Authorization': `Bearer ${openaiKey}`
         },
         body: JSON.stringify({
-          model: 'dall-e-2',
+          model: 'gpt-image-1-mini',
           prompt: `${resultObj.imagePrompt}, professional graphic style, sleek corporate color palette, clean background, no text, no letters`,
           n: 1,
           size: '1024x1024'
@@ -108,7 +107,7 @@ Regras críticas para o "imagePrompt":
 
       if (!imageResponse.ok) {
         const fallbackErrText = await imageResponse.text();
-        throw new Error(`Erro na API do OpenAI (DALL-E 3 & Fallback DALL-E 2): ${fallbackErrText}`);
+        throw new Error(`Erro na API do OpenAI (gpt-image-2 & Fallback gpt-image-1-mini): ${fallbackErrText}`);
       }
     }
 
