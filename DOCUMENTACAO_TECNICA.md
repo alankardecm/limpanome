@@ -86,6 +86,19 @@ Centralizado no módulo `lib/whatsappService.js`.
   * **Se vazias**: Utiliza o fallback automático pela Meta Cloud API (API Oficial Cloud).
 * **Consumo**: Utilizado para disparos manuais, campanhas e automações do SDR Inteligente (`lib/sdrAgent.js`).
 
+### 📷 Instagram (Agente de Criativos & Publicação Direta)
+Integrado no módulo `routes/marketing.js` e exposto no frontend em `public/js/pages/marketing.js`.
+* **Fluxo**:
+  1. O usuário escolhe o tema e o tom do post.
+  2. O backend solicita a geração da copy do post e do prompt de imagem para o `gpt-4o-mini`.
+  3. O backend envia o prompt de imagem para o modelo de geração de imagens da OpenAI (**`gpt-image-2`**, com fallback automático para o **`gpt-image-1-mini`** caso o plano de API do usuário possua restrições).
+  4. O frontend exibe uma prévia realista em estilo mockup do Instagram (com a imagem gerada e a legenda, permitindo edição manual do texto antes do envio).
+  5. Ao publicar, a imagem temporária do OpenAI é baixada pelo backend e enviada ao bucket `documentos` do Supabase na pasta `marketing/`, gerando uma URL estável e pública.
+  6. É feita a chamada em duas etapas na API oficial do Instagram Graph (`POST /media` seguido de `POST /media_publish`) para postar o criativo no feed oficial.
+* **Credenciais**:
+  * O token da Meta/Instagram é lido diretamente do arquivo `token meta.txt` localizado na raiz do projeto na VPS.
+  * O ID numérico da conta do Instagram Business pode ser configurado no `.env` (`INSTAGRAM_BUSINESS_ACCOUNT_ID`) ou preenchido na tela do CRM (que salva o valor no localStorage do navegador do usuário).
+
 ### 💳 Consulta Automática de Crédito
 Centralizado no módulo `lib/consultaCredito.js`.
 * **Fluxo**: O endpoint `POST /api/clientes/:id/consultar-credito` invoca o motor que valida o CPF/CNPJ, realiza a consulta determinística de crédito e:
@@ -115,6 +128,8 @@ Centralizado no módulo `lib/consultaCredito.js`.
 │   ├── css/                 # Estilos Vanilla CSS
 │   ├── js/                  # Scripts
 │   │   ├── pages/           # SPAs de cada tela (dashboard, clientes, etc)
+│   │   │   ├── marketing.js # Painel de geração e mockup do Instagram
+│   │   │   └── ...
 │   │   ├── api.js           # Client HTTP (API wrapper)
 │   │   └── app.js           # Estado global, inicialização e rotas
 │   └── index.html           # HTML Único da SPA
@@ -122,6 +137,7 @@ Centralizado no módulo `lib/consultaCredito.js`.
 │   ├── clientes.js          # CRUD de clientes e endpoint de crédito
 │   ├── whatsapp.js          # Disparos de mensagens
 │   ├── ia-sdr.js            # Webhook da IA SDR
+│   ├── marketing.js         # Endpoint de criativos e publicações do Instagram
 │   └── ...
 ├── app.js                   # Setup do Express e middlewares
 ├── server.js                # Inicialização do servidor local na porta 3000
@@ -155,8 +171,13 @@ EVOLUTION_INSTANCE_NAME="nome_da_instancia"
 META_PHONE_NUMBER_ID=""
 META_WHATSAPP_TOKEN=""
 
-# OpenAI (Usado pelo SDR Inteligente)
+# OpenAI (Usado pelo SDR Inteligente e pelo Criador de Imagens)
 OPENAI_API_KEY="sk-proj-..."
+
+# Instagram (Agente de Criativos)
+# ID da conta do Instagram Business (opcional se fornecido direto no painel)
+INSTAGRAM_BUSINESS_ACCOUNT_ID="seu_id_instagram_business"
+# Nota: O Token de Acesso da Meta/Instagram é lido do arquivo "token meta.txt" na raiz do projeto.
 ```
 
 ---

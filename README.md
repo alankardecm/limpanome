@@ -528,6 +528,13 @@ Authorization: Bearer <token_jwt>
 | `GET` | `/api/whatsapp/progresso/:campanhaId` | Polling de progresso de um disparo em andamento |
 | `GET` | `/api/whatsapp/historico-disparos` | Lista campanhas finalizadas |
 
+### Marketing e Criativos (protegido)
+
+| Método | Endpoint | Descrição |
+|--------|----------|-----------|
+| `POST` | `/api/marketing/gerar` | Gera copy (`gpt-4o-mini`) e imagem (`gpt-image-2` com fallback) |
+| `POST` | `/api/marketing/publicar` | Salva imagem no Supabase e publica no feed do Instagram |
+
 ### Webhooks (públicos, sem autenticação)
 
 | Método | Endpoint | Descrição |
@@ -1301,7 +1308,7 @@ CREATE TABLE fichas_rating (
 
 ---
 
-**Desenvolvido para Amarilis Soluções** | CRM Limpa Nome v5.0 | 2026
+**Desenvolvido para Amarilis Soluções** | CRM Limpa Nome v6.0 | 2026
 
 ---
 
@@ -1309,6 +1316,7 @@ CREATE TABLE fichas_rating (
 
 | Versão | Data | O que mudou |
 |--------|------|-------------|
+| **v6.0** | Mai/2026 | 📷 Instagram IA (Agente de criativos integrado ao CRM, geração de copy/imagens por IA via `gpt-image-2` com fallback, publicação automática direta no feed do Instagram, salvamento estável de imagem no Supabase Storage) |
 | **v5.0** | Mar/2026 | 📊 Rating (ficha cadastral via WhatsApp), formulário público mobile-first, aba Rating na ficha do cliente, endpoint público `/api/rating/submit`, tabela `fichas_rating` no Supabase |
 | **v4.0** | Mar/2026 | 📱 WhatsApp Blast (disparo em massa via Meta Cloud API), botão Disparar WPP na Prospecção, novo endpoint `/api/whatsapp` |
 | **v3.0** | Fev/2026 | 🎯 Prospecção (Alertas, Funil, Extrator Google Maps), IA SDR (GPT-4o-mini), Landing Page de captura, Automações N8N |
