@@ -88,6 +88,7 @@ const App = {
       prospeccao: 'Prospecção',
       'ia-sdr': 'IA SDR',
       whatsapp: 'WhatsApp — Disparo em Massa',
+      marketing: 'Marketing & Criativos',
     };
     document.getElementById('pageTitle').textContent = titles[page] || page;
 
@@ -102,6 +103,7 @@ const App = {
       case 'prospeccao': ProspeccaoPage.render(); break;
       case 'ia-sdr': IaSdrPage.render(); break;
       case 'whatsapp': WhatsappPage.render(); break;
+      case 'marketing': MarketingPage.render(); break;
       default: DashboardPage.render();
     }
   },
