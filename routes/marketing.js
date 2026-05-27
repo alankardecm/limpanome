@@ -69,8 +69,8 @@ Regras críticas para o "imagePrompt":
     }
     const resultObj = JSON.parse(content);
 
-    // 2. Chamar DALL-E 3 para gerar a imagem
-    const imageResponse = await fetch('https://api.openai.com/v1/images/generations', {
+    // 2. Chamar DALL-E 3 para gerar a imagem (com fallback para DALL-E 2)
+    let imageResponse = await fetch('https://api.openai.com/v1/images/generations', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -85,13 +85,35 @@ Regras críticas para o "imagePrompt":
       })
     });
 
+    let generatedImageUrl;
+
     if (!imageResponse.ok) {
       const errText = await imageResponse.text();
-      throw new Error(`Erro na API do OpenAI (DALL-E): ${errText}`);
+      console.warn(`DALL-E 3 falhou (talvez a conta não tenha acesso), tentando fallback para DALL-E 2. Erro: ${errText}`);
+      
+      // Chamada de Fallback com DALL-E 2 (não aceita o parâmetro quality)
+      imageResponse = await fetch('https://api.openai.com/v1/images/generations', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${openaiKey}`
+        },
+        body: JSON.stringify({
+          model: 'dall-e-2',
+          prompt: `${resultObj.imagePrompt}, professional graphic style, sleek corporate color palette, clean background, no text, no letters`,
+          n: 1,
+          size: '1024x1024'
+        })
+      });
+
+      if (!imageResponse.ok) {
+        const fallbackErrText = await imageResponse.text();
+        throw new Error(`Erro na API do OpenAI (DALL-E 3 & Fallback DALL-E 2): ${fallbackErrText}`);
+      }
     }
 
     const imageData = await imageResponse.json();
-    const generatedImageUrl = imageData.data[0].url;
+    generatedImageUrl = imageData.data[0].url;
 
     res.json({
       caption: resultObj.caption,
