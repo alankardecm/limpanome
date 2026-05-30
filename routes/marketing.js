@@ -69,7 +69,8 @@ Regras críticas para o "imagePrompt":
     }
     const resultObj = JSON.parse(content);
 
-    // 2. Chamar gpt-image-2 para gerar a imagem (com fallback para gpt-image-1-mini)
+    // 2. Chamar gpt-image-1 para gerar a imagem (com fallback para gpt-image-1-mini)
+    // NOTA: os modelos gpt-image-* SEMPRE retornam base64 (b64_json) e NÃO aceitam response_format.
     let imageResponse = await fetch('https://api.openai.com/v1/images/generations', {
       method: 'POST',
       headers: {
@@ -77,19 +78,17 @@ Regras críticas para o "imagePrompt":
         'Authorization': `Bearer ${openaiKey}`
       },
       body: JSON.stringify({
-        model: 'gpt-image-2',
+        model: 'gpt-image-1',
         prompt: `${resultObj.imagePrompt}, professional graphic style, sleek corporate color palette, high resolution, clean background, no text, no letters`,
         n: 1,
         size: '1024x1024'
       })
     });
 
-    let generatedImageUrl;
-
     if (!imageResponse.ok) {
       const errText = await imageResponse.text();
-      console.warn(`gpt-image-2 falhou, tentando fallback para gpt-image-1-mini. Erro: ${errText}`);
-      
+      console.warn(`gpt-image-1 falhou, tentando fallback para gpt-image-1-mini. Erro: ${errText}`);
+
       // Chamada de Fallback com gpt-image-1-mini
       imageResponse = await fetch('https://api.openai.com/v1/images/generations', {
         method: 'POST',
@@ -107,12 +106,33 @@ Regras críticas para o "imagePrompt":
 
       if (!imageResponse.ok) {
         const fallbackErrText = await imageResponse.text();
-        throw new Error(`Erro na API do OpenAI (gpt-image-2 & Fallback gpt-image-1-mini): ${fallbackErrText}`);
+        throw new Error(`Erro na API do OpenAI (gpt-image-1 & Fallback gpt-image-1-mini): ${fallbackErrText}`);
       }
     }
 
     const imageData = await imageResponse.json();
-    generatedImageUrl = imageData.data[0].url;
+
+    // Modelos gpt-image-* retornam base64 (b64_json), não URL.
+    const b64 = imageData?.data?.[0]?.b64_json;
+    if (!b64) {
+      throw new Error('A OpenAI não retornou a imagem em base64 (b64_json).');
+    }
+    const buffer = Buffer.from(b64, 'base64');
+
+    // Subir para o Supabase Storage para obter uma URL pública permanente
+    // (serve tanto para o preview no front quanto para a etapa /publicar).
+    const filePath = `marketing/criativo_${Date.now()}.png`;
+    const { error: uploadError } = await supabase.storage
+      .from('documentos')
+      .upload(filePath, buffer, { contentType: 'image/png', upsert: false });
+
+    if (uploadError) throw uploadError;
+
+    const { data: urlData } = supabase.storage
+      .from('documentos')
+      .getPublicUrl(filePath);
+
+    const generatedImageUrl = urlData.publicUrl;
 
     res.json({
       caption: resultObj.caption,
