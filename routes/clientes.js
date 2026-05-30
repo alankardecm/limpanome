@@ -296,10 +296,11 @@ router.post('/:id/consultar-credito', async (req, res) => {
     }
 
     // 9. Registrar no histórico do cliente
+    const fonteTxt = consulta.simulado ? 'SIMULADA (dados ilustrativos)' : `provider '${consulta.provider}'`;
     await supabase.from('historico').insert({
       cliente_id: id,
       tipo: 'consulta_credito',
-      descricao: `Consulta de crédito realizada automaticamente. Novo score: ${consulta.score}. Restrições importadas: ${consulta.dividas.length} dívidas, ${consulta.apontamentos_bacen.length} apontamentos BACEN.`,
+      descricao: `Consulta de crédito ${fonteTxt}. Novo score: ${consulta.score}. Restrições importadas: ${consulta.dividas.length} dívidas, ${consulta.apontamentos_bacen.length} apontamentos BACEN.`,
       usuario: 'sistema'
     });
 
@@ -307,7 +308,9 @@ router.post('/:id/consultar-credito', async (req, res) => {
       success: true,
       score: consulta.score,
       dividasImportadas: consulta.dividas.length,
-      bacenImportados: consulta.apontamentos_bacen.length
+      bacenImportados: consulta.apontamentos_bacen.length,
+      provider: consulta.provider,
+      simulado: consulta.simulado
     });
   } catch (err) {
     console.error('Erro na consulta de crédito:', err.message);
